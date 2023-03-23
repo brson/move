@@ -1,0 +1,78 @@
+# CI jobs to be run upon the code lands to the main branch or GitHub Action test branches.
+
+name: llvm-ci-pre-land
+
+on:
+  pull_request:
+    branches: [main, gha-test-*]
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      changes-target-branch: ${{ steps.changes.outputs.changes-target-branch }}
+      any-changes-founds: ${{ steps.any-changes-found.outputs.changes-found }}
+      test-rust: ${{ steps.rust-changes.outputs.changes-found }}
+    steps:
+      - uses: actions/checkout@v2.4.0
+      - name: Git Hooks and Checks
+        run: ./scripts/git-checks.sh
+      - id: changes
+        name: determine changes
+        uses: diem/actions/changes@faadd16607b77dfa2231a8f366883e01717b3225
+        with:
+          workflow-file: ci.yml
+          github-token: ${{secrets.GITHUB_TOKEN}}
+      - id: any-changes-found
+        name: determine if there are any files listed in the CHANGES_CHANGED_FILE_OUTPUTFILE.
+        run: |
+          res=true
+          if [[ ! -f "$CHANGES_CHANGED_FILE_OUTPUTFILE" ]] || [[ "$(cat "$CHANGES_CHANGED_FILE_OUTPUTFILE" | wc -l)" == 0 ]]; then
+            res=false;
+          fi
+          echo "::set-output name=changes-found::$(echo $res)";
+      - id: rust-changes
+        name: find rust/cargo changes.
+        uses: diem/actions/matches@faadd16607b77dfa2231a8f366883e01717b3225
+        with:
+          pattern: '^documentation\|^docker\|^scripts'
+          invert: "true"
+
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: prepare
+    # if: ${{ needs.prepare.outputs.any-changes-founds == 'true' }}
+    steps:
+      - uses: actions/checkout@v2.4.0
+      - uses: ./.github/actions/build-setup
+      - uses: Swatinem/rust-cache@c5ed9ba6b7e1bb8aff90d43acd2f0af4990fa57c
+      - name: cargo lint
+        run: cargo x lint
+      # - name: cargo clippy
+      #   run: cargo xclippy --workspace --all-targets
+      - name: cargo fmt
+        run: cargo xfmt --check
+      - uses: ./.github/actions/build-teardown
+
+  unit-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    needs: prepare
+    # if: ${{ needs.prepare.outputs.test-rust == 'true' }}
+    steps:
+      - uses: actions/checkout@v2.4.0
+      - uses: ./.github/actions/build-setup
+      - uses: Swatinem/rust-cache@c5ed9ba6b7e1bb8aff90d43acd2f0af4990fa57c
+      - name: Set Swap Space
+        uses: pierotofy/set-swap-space@master
+        with:
+          swap-size-gb: 10
+      - name: move-native tests
+        run: cargo test --manifest-path=language/move-native/Cargo.toml
+      # fixme need to figure out how to build LLVM on CI before we can test these
+      # - name: ir-tests
+      #   run: cargo test --profile ci -p move-mv-llvm-compiler --test ir-tests
+      # - name: move-ir-tests
+      #   run: cargo test --profile ci -p move-mv-llvm-compiler --test move-ir-tests
+      - uses: ./.github/actions/build-teardown
