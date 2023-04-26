@@ -275,6 +275,11 @@
 
 extern crate alloc;
 
+/// Types literally shared with the compiler through crate linkage.
+pub mod shared {
+    pub use crate::rt_types::TypeDesc;
+}
+
 /// Types known to the compiler.
 pub(crate) mod rt_types {
     use crate::target_defs;

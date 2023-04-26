@@ -6,6 +6,7 @@
 
 use crate::stackless::llvm;
 use move_model::{ast as mast, model as mm, ty as mty};
+use move_native::shared::TypeDesc;
 
 static TD_NAME: &'static str = "__move_rt_type";
 static TD_TYPE_NAME_NAME: &'static str = "__move_rt_type_name";
@@ -127,7 +128,7 @@ fn type_name(mty: &mty::Type) -> String {
 fn type_descrim(mty: &mty::Type) -> u64 {
     use mty::{PrimitiveType, Type};
     match mty {
-        Type::Primitive(PrimitiveType::U64) => 3,
+        Type::Primitive(PrimitiveType::U64) => TypeDesc::U64 as u64,
         _ => todo!(),
     }
 }
