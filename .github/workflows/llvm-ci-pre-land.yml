@@ -69,7 +69,7 @@ jobs:
         with:
           swap-size-gb: 10
       - name: move-native tests
-        run: cargo test --manifest-path=language/move-native/Cargo.toml
+        run: cargo test -p move-native
       # fixme need to figure out how to build LLVM on CI before we can test these
       # - name: ir-tests
       #   run: cargo test --profile ci -p move-mv-llvm-compiler --test ir-tests
