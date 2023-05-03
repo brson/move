@@ -227,9 +227,10 @@ fn llvm_write_to_file(
         if llvm_ir {
             if output_file_name != "-" {
                 let mut err_string = ptr::null_mut();
+                let filename = to_c_str(output_file_name);
                 let res = LLVMPrintModuleToFile(
                     module,
-                    to_c_str(output_file_name).as_ptr(),
+                    filename.as_ptr(),
                     &mut err_string,
                 );
 

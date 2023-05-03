@@ -157,6 +157,16 @@ pub fn enable_llvm_pretty_stack_trace() {
 /// A) Finds a terminating null byte in the Rust string and can reference it directly like a C string.
 ///
 /// B) Finds no null byte and allocates a new C string based on the input Rust string.
+///
+/// # Safety
+///
+/// This function is extremely prone to use after free:
+///
+/// If `as_ptr` is called on the return value, and the return value is not assigned
+/// to a stack variable first, then the return value is freed as a temporary while
+/// the pointer dangles.
+///
+/// This function should not be used. Use the `SafeCStr` extension trait instead.
 pub fn to_c_str(mut s: &str) -> Cow<'_, CStr> {
     if s.is_empty() {
         s = "\0";
