@@ -228,11 +228,7 @@ fn llvm_write_to_file(
             if output_file_name != "-" {
                 let mut err_string = ptr::null_mut();
                 let filename = to_c_str(output_file_name);
-                let res = LLVMPrintModuleToFile(
-                    module,
-                    filename.as_ptr(),
-                    &mut err_string,
-                );
+                let res = LLVMPrintModuleToFile(module, filename.as_ptr(), &mut err_string);
 
                 if res != 0 {
                     assert!(!err_string.is_null());

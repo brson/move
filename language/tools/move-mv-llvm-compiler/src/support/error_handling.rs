@@ -58,7 +58,10 @@ impl DiagnosticInfo {
 
     pub(crate) fn severity_is_error(&self) -> bool {
         unsafe {
-            matches!(LLVMGetDiagInfoSeverity(self.diagnostic_info), LLVMDiagnosticSeverity::LLVMDSError)
+            matches!(
+                LLVMGetDiagInfoSeverity(self.diagnostic_info),
+                LLVMDiagnosticSeverity::LLVMDSError
+            )
         }
     }
 }

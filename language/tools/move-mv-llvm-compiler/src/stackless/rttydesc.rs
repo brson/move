@@ -12,12 +12,12 @@ use crate::stackless::llvm;
 use move_model::{ast as mast, model as mm, ty as mty};
 use move_native::shared::TypeDesc;
 
-static TD_NAME: & str = "__move_rt_type";
-static TD_TYPE_NAME_NAME: & str = "__move_rt_type_name";
-static TD_TYPE_INFO_NAME: & str = "__move_rt_type_info";
-static TD_VECTOR_TYPE_INFO_NAME: & str = "__move_rt_type_info_vec";
-static TD_STRUCT_TYPE_INFO_NAME: & str = "__move_rt_type_info_struct";
-static TD_REFERENCE_TYPE_INFO_NAME: & str = "__move_rt_type_info_ref";
+static TD_NAME: &str = "__move_rt_type";
+static TD_TYPE_NAME_NAME: &str = "__move_rt_type_name";
+static TD_TYPE_INFO_NAME: &str = "__move_rt_type_info";
+static TD_VECTOR_TYPE_INFO_NAME: &str = "__move_rt_type_info_vec";
+static TD_STRUCT_TYPE_INFO_NAME: &str = "__move_rt_type_info_struct";
+static TD_REFERENCE_TYPE_INFO_NAME: &str = "__move_rt_type_info_ref";
 
 pub fn get_llvm_tydesc_type(llcx: &llvm::Context) -> llvm::StructType {
     match llcx.named_struct_type(TD_NAME) {

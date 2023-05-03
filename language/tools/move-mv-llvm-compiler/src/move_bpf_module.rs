@@ -396,11 +396,7 @@ impl<'a> MoveBPFModule<'a> {
         Some(next_bb)
     }
 
-    pub fn append_basic_block(
-        &self,
-        function: LLVMValueRef,
-        name: &str,
-    ) -> LLVMBasicBlockRef {
+    pub fn append_basic_block(&self, function: LLVMValueRef, name: &str) -> LLVMBasicBlockRef {
         let c_string = to_c_str(name);
         unsafe { LLVMAppendBasicBlockInContext(*self.context, function, c_string.as_ptr()) }
     }

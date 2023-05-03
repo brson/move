@@ -1251,8 +1251,7 @@ impl<'mm, 'up> FunctionContext<'mm, 'up> {
                 }
             };
 
-            self
-                .llvm_module
+            self.llvm_module
                 .add_function_with_attrs(&name, llty, &attrs)
         }
     }
@@ -1272,9 +1271,7 @@ impl<'mm, 'up> FunctionContext<'mm, 'up> {
                 (llty, attrs)
             };
 
-            self
-                .llvm_module
-                .add_function_with_attrs(name, llty, &attrs)
+            self.llvm_module.add_function_with_attrs(name, llty, &attrs)
         };
         //
         let param_ty = self.llvm_cx.int64_type();
