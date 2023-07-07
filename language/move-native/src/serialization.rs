@@ -158,7 +158,14 @@ unsafe fn serialize_vector(type_elt: &MoveType, v: &MoveUntypedVector) -> Vec<u8
             borsh_to_vec(&*v)
         }
         TypedMoveBorrowedRustVec::Vector(t, v) => {
-            todo!()
+            // fixme lots of allocations here
+            let len: u32 = v.len().try_into().expect("overlong vector");
+            let mut buf = borsh_to_vec(&len);
+            for elt in v.iter() {
+                let mut elt_buf = serialize_vector(&t, elt);
+                buf.append(&mut elt_buf);
+            }
+            buf
         }
         TypedMoveBorrowedRustVec::Struct(v) => {
             todo!()
@@ -169,7 +176,7 @@ unsafe fn serialize_vector(type_elt: &MoveType, v: &MoveUntypedVector) -> Vec<u8
     }
 }
 
-fn deserialize_vector(type_elt: &MoveType, bytes: &mut &[u8]) -> MoveUntypedVector {
+unsafe fn deserialize_vector(type_elt: &MoveType, bytes: &mut &[u8]) -> MoveUntypedVector {
     match type_elt.type_desc {
         TypeDesc::Bool => {
             let v: Vec<bool> = borsh_from_slice(bytes);
@@ -212,7 +219,15 @@ fn deserialize_vector(type_elt: &MoveType, bytes: &mut &[u8]) -> MoveUntypedVect
             rust_vec_to_move_vec(v)
         }
         TypeDesc::Vector => {
-            todo!()
+            let vecinfo = &(*type_elt.type_info).vector;
+            let inner_elt_type = vecinfo.element_type;
+            let len: u32 = borsh_from_slice(bytes);
+            let mut v: Vec<MoveUntypedVector> = Vec::with_capacity(len as usize);
+            for _ in 0..len {
+                let eltv = deserialize_vector(&inner_elt_type, bytes);
+                v.push(eltv);
+            }
+            rust_vec_to_move_vec(v)
         }
         TypeDesc::Struct => {
             todo!()

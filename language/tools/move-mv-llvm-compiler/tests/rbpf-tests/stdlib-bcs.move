@@ -168,6 +168,23 @@ module 0x10::tests {
     assert!(v == vv, 11);
   }
 
+  public fun test_vec_vec_bool() {
+    let v: vector<vector<bool>> = vector::empty();
+    {
+      let velt: vector<bool> = vector::empty();
+      vector::push_back(&mut velt, true);
+      vector::push_back(&mut velt, false);
+      vector::push_back(&mut v, velt);
+      let velt: vector<bool> = vector::empty();
+      vector::push_back(&mut velt, false);
+      vector::push_back(&mut velt, true);
+      vector::push_back(&mut v, velt);
+    };
+    let vs: vector<u8> = bcs::to_bytes(&v);
+    let vv: vector<vector<bool>> = bcs::test_from_bytes(&vs);
+    //assert!(v == vv, 11); // fixme internal compiler error
+  }
+
   struct TestVecStruct has drop {
     a: u8,
     b: u8,
@@ -207,6 +224,7 @@ script {
     tests::test_vec_u256();
     tests::test_vec_address();
     //tests::test_vec_signer(); // fixme
+    //tests::test_vec_vec_bool(); // fixme
     //tests::test_vec_struct(); // fixme
   }
 }
