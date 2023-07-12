@@ -423,3 +423,221 @@ pub unsafe fn cmp_eq(type_ve: &MoveType, v1: &MoveUntypedVector, v2: &MoveUntype
     };
     is_eq
 }
+
+impl<'mv> MoveBorrowedRustVecOfStruct<'mv> {
+    pub unsafe fn iter<'s>(&'s self) -> impl Iterator<Item = &'s AnyValue> {
+        let struct_size = usize::try_from(self.type_.size).expect("overflow");
+        let vec_len = usize::try_from(self.inner.length).expect("overflow");
+        (0..vec_len).map(move |i| {
+            let base_ptr = self.inner.ptr;
+            let offset = i.checked_mul(struct_size).expect("overflow");
+            let offset = isize::try_from(offset).expect("overflow");
+            let element_ptr = base_ptr.offset(offset);
+            let element_ref = &*(element_ptr as *const AnyValue);
+            element_ref
+        })
+    }
+
+    pub unsafe fn get(&self, i: usize) -> &'mv AnyValue {
+        let struct_size = usize::try_from(self.type_.size).expect("overflow");
+        let vec_len = usize::try_from(self.inner.length).expect("overflow");
+
+        if i >= vec_len {
+            panic!("index out of bounds");
+        }
+
+        let base_ptr = self.inner.ptr;
+        let offset = i.checked_mul(struct_size).expect("overflow");
+        let offset = isize::try_from(offset).expect("overflow");
+        let element_ptr = base_ptr.offset(offset);
+        let element_ref = &*(element_ptr as *const AnyValue);
+        element_ref
+    }
+}
+
+impl<'mv> MoveBorrowedRustVecOfStructMut<'mv> {
+    pub unsafe fn get_mut(&mut self, i: usize) -> &'mv mut AnyValue {
+        let struct_size = usize::try_from(self.type_.size).expect("overflow");
+        let vec_len = usize::try_from(self.inner.length).expect("overflow");
+
+        if i >= vec_len {
+            panic!("index out of bounds");
+        }
+
+        let base_ptr = self.inner.ptr;
+        let offset = i.checked_mul(struct_size).expect("overflow");
+        let offset = isize::try_from(offset).expect("overflow");
+        let element_ptr = base_ptr.offset(offset);
+        let element_ref = &mut *(element_ptr as *mut AnyValue);
+        element_ref
+    }
+
+    /// Get a pointer to a possibly-uninitialized element.
+    pub unsafe fn get_mut_unchecked_raw(&mut self, i: usize) -> *mut AnyValue {
+        let struct_size = usize::try_from(self.type_.size).expect("overflow");
+        let vec_capacity = usize::try_from(self.inner.capacity).expect("overflow");
+
+        if i >= vec_capacity {
+            panic!("index out of bounds");
+        }
+
+        let base_ptr = self.inner.ptr;
+        let offset = i.checked_mul(struct_size).expect("overflow");
+        let offset = isize::try_from(offset).expect("overflow");
+        let element_ptr = base_ptr.offset(offset);
+        let element_ptr = element_ptr as *mut AnyValue;
+        element_ptr
+    }
+
+    pub unsafe fn set_length(&mut self, len: usize) {
+        let vec_capacity = usize::try_from(self.inner.capacity).expect("overflow");
+
+        if len > vec_capacity {
+            panic!("index greater than capacity");
+        }
+
+        let len = u64::try_from(len).expect("overflow");
+        self.inner.length = len;
+    }
+
+    pub unsafe fn push(&mut self, ptr: *mut AnyValue) {
+        self.maybe_grow();
+
+        let struct_size = usize::try_from(self.type_.size).expect("overflow");
+        let vec_len = usize::try_from(self.inner.length).expect("overflow");
+        let vec_cap = usize::try_from(self.inner.capacity).expect("overflow");
+
+        assert!(vec_len < vec_cap);
+
+        let i = vec_len;
+
+        let base_ptr = self.inner.ptr;
+        let offset = i.checked_mul(struct_size).expect("overflow");
+        let offset = isize::try_from(offset).expect("overflow");
+        let element_ptr = base_ptr.offset(offset);
+
+        let src_ptr = ptr as *mut u8;
+        ptr::copy_nonoverlapping(src_ptr, element_ptr, struct_size);
+
+        self.inner.length = self.inner.length.checked_add(1).expect("overflow");
+    }
+
+    pub unsafe fn maybe_grow(&mut self) {
+        let vec_len = usize::try_from(self.inner.length).expect("overflow");
+        let vec_cap = usize::try_from(self.inner.capacity).expect("overflow");
+
+        if vec_len < vec_cap {
+            return;
+        }
+
+        assert_eq!(vec_len, vec_cap);
+
+        self.grow_amortized();
+    }
+
+    /// This is approximately like `RawVec::grow_amortized`.
+    ///
+    /// It always produces a power-of-two capacity.
+    #[cold]
+    pub unsafe fn grow_amortized(&mut self) {
+        let struct_size = usize::try_from(self.type_.size).expect("overflow");
+        let vec_len = usize::try_from(self.inner.length).expect("overflow");
+        let vec_cap = usize::try_from(self.inner.capacity).expect("overflow");
+
+        assert_eq!(vec_len, vec_cap);
+
+        // Same as RawVec
+        let min_non_zero_cap = if struct_size == 1 {
+            8
+        } else if struct_size <= 1024 {
+            4
+        } else {
+            1
+        };
+
+        let new_cap = vec_cap.checked_mul(2).expect("overflow");
+        let new_cap = core::cmp::max(new_cap, min_non_zero_cap);
+
+        self.reserve_exact(new_cap);
+    }
+
+    pub unsafe fn reserve_exact(&mut self, new_cap: usize) {
+        let struct_size = usize::try_from(self.type_.size).expect("overflow");
+        let struct_align = usize::try_from(self.type_.alignment).expect("overflow");
+        let vec_cap = usize::try_from(self.inner.capacity).expect("overflow");
+        let new_cap_u64 = u64::try_from(new_cap).expect("overflow");
+
+        assert!(struct_size != 0); // can't handle ZSTs
+        assert!(new_cap >= vec_cap);
+
+        let old_vec_byte_size = vec_cap.checked_mul(struct_size).expect("overflow");
+        let new_vec_byte_size = new_cap.checked_mul(struct_size).expect("overflow");
+        let new_layout = alloc::alloc::Layout::from_size_align(new_vec_byte_size, struct_align)
+            .expect("bad size or alignment");
+
+        if vec_cap == 0 {
+            let new_ptr = alloc::alloc::alloc(new_layout);
+            if new_ptr.is_null() {
+                alloc::alloc::handle_alloc_error(new_layout);
+            }
+            self.inner.ptr = new_ptr;
+            self.inner.capacity = new_cap_u64;
+        } else {
+            let old_layout =
+                alloc::alloc::Layout::from_size_align(old_vec_byte_size, struct_align)
+                .expect("bad size or alignment");
+
+            let new_ptr = alloc::alloc::realloc(self.inner.ptr, old_layout, new_vec_byte_size);
+            if new_ptr.is_null() {
+                alloc::alloc::handle_alloc_error(new_layout);
+            }
+            self.inner.ptr = new_ptr;
+            self.inner.capacity = new_cap_u64;
+        }
+    }
+
+    pub unsafe fn pop_into(&mut self, ptr: *mut AnyValue) {
+        let struct_size = usize::try_from(self.type_.size).expect("overflow");
+        let vec_len = usize::try_from(self.inner.length).expect("overflow");
+
+        let i = vec_len.checked_sub(1).expect("popping empty vector");
+
+        let base_ptr = self.inner.ptr;
+        let offset = i.checked_mul(struct_size).expect("overflow");
+        let offset = isize::try_from(offset).expect("overflow");
+        let element_ptr = base_ptr.offset(offset);
+
+        let dest_ptr = ptr as *mut u8;
+        ptr::copy_nonoverlapping(element_ptr, dest_ptr, struct_size);
+
+        self.inner.length = self.inner.length.checked_sub(1).expect("overflow");
+    }
+
+    pub unsafe fn swap(&mut self, i: usize, j: usize) {
+        let struct_size = usize::try_from(self.type_.size).expect("overflow");
+        let vec_len = usize::try_from(self.inner.length).expect("overflow");
+
+        if i >= vec_len || j >= vec_len {
+            panic!("index out of bounds");
+        }
+
+        // Safety: must avoid overlapping pointers in swap_nonoverlapping
+        // below.
+        if i == j {
+            return;
+        }
+
+        let base_ptr = self.inner.ptr;
+
+        let i_offset = i.checked_mul(struct_size).expect("overflow");
+        let i_offset = isize::try_from(i_offset).expect("overflow");
+        let i_element_ptr = base_ptr.offset(i_offset);
+        let j_offset = j.checked_mul(struct_size).expect("overflow");
+        let j_offset = isize::try_from(j_offset).expect("overflow");
+        let j_element_ptr = base_ptr.offset(j_offset);
+
+        // Safety: because of the presense of uninitialized padding bytes,
+        // we must (I think) do this swap with raw pointers, not slices.
+        ptr::swap_nonoverlapping(i_element_ptr, j_element_ptr, struct_size);
+    }
+}
