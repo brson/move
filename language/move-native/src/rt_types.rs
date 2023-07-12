@@ -74,7 +74,7 @@ impl core::fmt::Debug for MoveType {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         // fixme: implement this better
         unsafe {
-            write!(f, "{}", self.name.as_ascii_str());
+            write!(f, "{}", self.name.as_ascii_str())?;
         }
         Ok(())
     }

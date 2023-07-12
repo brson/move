@@ -266,7 +266,6 @@
 //! - todo add drop-bombs to other rt_types with allocations
 //! - remove transmutes to make the semantics clearer to miri?
 
-#![allow(unused)]
 #![no_std]
 
 // NB Solana's Rust seems to allow use of unstable features.

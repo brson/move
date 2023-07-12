@@ -4,10 +4,8 @@
 
 use crate::conv::*;
 use crate::rt_types::*;
-use crate::target_defs;
 use ethnum::U256;
 use borsh::{BorshSerialize, BorshDeserialize};
-use borsh::maybestd::io::Result as BorshResult;
 use alloc::vec::Vec;
 
 /// A type to serialize u256s.

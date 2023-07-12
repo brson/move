@@ -282,7 +282,6 @@ impl<'mv> MoveBorrowedRustVecOfStructMut<'mv> {
     }
 
     pub unsafe fn maybe_grow(&mut self) {
-        let struct_size = usize::try_from(self.type_.size).expect("overflow");
         let vec_len = usize::try_from(self.inner.length).expect("overflow");
         let vec_cap = usize::try_from(self.inner.capacity).expect("overflow");
 
@@ -301,7 +300,6 @@ impl<'mv> MoveBorrowedRustVecOfStructMut<'mv> {
     #[cold]
     pub unsafe fn grow_amortized(&mut self) {
         let struct_size = usize::try_from(self.type_.size).expect("overflow");
-        let struct_align = usize::try_from(self.type_.alignment).expect("overflow");
         let vec_len = usize::try_from(self.inner.length).expect("overflow");
         let vec_cap = usize::try_from(self.inner.capacity).expect("overflow");
 
@@ -325,7 +323,6 @@ impl<'mv> MoveBorrowedRustVecOfStructMut<'mv> {
     pub unsafe fn reserve_exact(&mut self, new_cap: usize) {
         let struct_size = usize::try_from(self.type_.size).expect("overflow");
         let struct_align = usize::try_from(self.type_.alignment).expect("overflow");
-        let vec_len = usize::try_from(self.inner.length).expect("overflow");
         let vec_cap = usize::try_from(self.inner.capacity).expect("overflow");
         let new_cap_u64 = u64::try_from(new_cap).expect("overflow");
 
@@ -699,15 +696,15 @@ impl<'mv> core::fmt::Debug for BorrowedTypedMoveValue<'mv> {
             },
             BorrowedTypedMoveValue::Struct(t, v) => unsafe {
                 let st = (*(t.type_info)).struct_;
-                write!(f, "{} {{ ", t.name.as_ascii_str());
+                write!(f, "{} {{ ", t.name.as_ascii_str())?;
                 let fields = walk_struct_fields(&st, v);
                 for (type_, ref_, fld_name) in fields {
                     let rv = borrow_move_value_as_rust_value(type_, ref_);
-                    write!(f, "{}: ", fld_name.as_ascii_str());
-                    rv.fmt(f);
-                    f.write_str(", ");
+                    write!(f, "{}: ", fld_name.as_ascii_str())?;
+                    rv.fmt(f)?;
+                    f.write_str(", ")?;
                 }
-                f.write_str("}");
+                f.write_str("}")?;
                 Ok(())
             },
             BorrowedTypedMoveValue::Reference(t, v) => unsafe {
@@ -741,7 +738,7 @@ impl<'mv> core::fmt::Debug for TypedMoveBorrowedRustVec<'mv> {
                 dbg.finish()
             }
             TypedMoveBorrowedRustVec::Struct(s) => {
-                f.write_str("[");
+                f.write_str("[")?;
                 unsafe {
                     for vref in s.iter() {
                         let type_ = MoveType {
@@ -750,11 +747,11 @@ impl<'mv> core::fmt::Debug for TypedMoveBorrowedRustVec<'mv> {
                             type_info: &TypeInfo { struct_: *s.type_ },
                         };
                         let e = borrow_move_value_as_rust_value(&type_, vref);
-                        e.fmt(f);
-                        f.write_str(", ");
+                        e.fmt(f)?;
+                        f.write_str(", ")?;
                     }
                 }
-                f.write_str("]");
+                f.write_str("]")?;
                 Ok(())
             }
             TypedMoveBorrowedRustVec::Reference(t, v) => {

@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 mod bcs {
-    use crate::conv::*;
     use crate::rt_types::*;
 
     /// Serialize any value.
@@ -36,8 +35,6 @@ mod debug {
     use crate::rt_types::*;
     use crate::target_defs;
     use alloc::format;
-    use alloc::string::String;
-    use core::fmt::Write;
 
     #[export_name = "move_native_debug_print"]
     unsafe extern "C" fn print(type_x: &MoveType, x: &AnyValue) {
@@ -57,10 +54,10 @@ mod event {
 
     #[export_name = "move_native_event_write_to_event_store"]
     unsafe extern "C" fn write_to_event_store(
-        type_msg: &MoveType,
-        guid: MoveByteVector,
-        count: u64,
-        msg: *mut AnyValue,
+        _type_msg: &MoveType,
+        _guid: MoveByteVector,
+        _count: u64,
+        _msg: *mut AnyValue,
     ) {
         todo!()
     }
@@ -105,7 +102,6 @@ mod signer {
 pub(crate) mod string {
     use crate::conv::*;
     use crate::rt_types::*;
-    use alloc::vec::Vec;
     use core::str;
 
     #[export_name = "move_native_string_internal_check_utf8"]
@@ -194,7 +190,7 @@ mod unit_test {
     use crate::rt_types::*;
 
     #[export_name = "move_native_unit_test_create_signers_for_testing"]
-    extern "C" fn create_signers_for_testing(num_signers: u64) -> MoveSignerVector {
+    extern "C" fn create_signers_for_testing(_num_signers: u64) -> MoveSignerVector {
         todo!()
     }
 }
@@ -336,7 +332,7 @@ pub(crate) mod vector {
         v: &mut MoveUntypedVector,
         e: *mut AnyValue
     ) {
-        let mut rust_vec = borrow_typed_move_vec_as_rust_vec_mut(type_ve, v);
+        let rust_vec = borrow_typed_move_vec_as_rust_vec_mut(type_ve, v);
 
         match rust_vec {
             TypedMoveBorrowedRustVecMut::Bool(mut v) => v.push(ptr::read(e as *const bool)),
@@ -361,7 +357,7 @@ pub(crate) mod vector {
         v: &'v mut MoveUntypedVector,
         i: u64
     ) -> &'v mut AnyValue {
-        let mut rust_vec = borrow_typed_move_vec_as_rust_vec_mut(type_ve, v);
+        let rust_vec = borrow_typed_move_vec_as_rust_vec_mut(type_ve, v);
 
         let i = usize::try_from(i).expect("usize");
         let value = match rust_vec {
@@ -388,7 +384,7 @@ pub(crate) mod vector {
         v: &mut MoveUntypedVector,
         r: *mut AnyValue,
     ) {
-        let mut rust_vec = borrow_typed_move_vec_as_rust_vec_mut(type_ve, v);
+        let rust_vec = borrow_typed_move_vec_as_rust_vec_mut(type_ve, v);
 
         let msg = "popping from empty vec";
         match rust_vec {
@@ -490,7 +486,7 @@ pub(crate) mod vector {
         let i = usize::try_from(i).expect("usize");
         let j = usize::try_from(j).expect("usize");
 
-        let mut rust_vec = borrow_typed_move_vec_as_rust_vec_mut(type_ve, v);
+        let rust_vec = borrow_typed_move_vec_as_rust_vec_mut(type_ve, v);
 
         match rust_vec {
             TypedMoveBorrowedRustVecMut::Bool(mut v) => v.swap(i, j),

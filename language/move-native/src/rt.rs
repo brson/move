@@ -27,7 +27,7 @@ unsafe fn vec_copy(type_ve: &MoveType, dstv: &mut MoveUntypedVector, srcv: &Move
     let dst_len = V::length(type_ve, dstv);
 
     // Drain the destination first.
-    for i in 0..dst_len {
+    for _ in 0..dst_len {
         crate::rt::pop_back_discard(type_ve, dstv);
     }
 
@@ -44,7 +44,7 @@ unsafe fn pop_back_discard(
     v: &mut MoveUntypedVector,
 ) {
     use crate::conv::{TypedMoveBorrowedRustVecMut, borrow_typed_move_vec_as_rust_vec_mut};
-    let mut rust_vec = borrow_typed_move_vec_as_rust_vec_mut(type_ve, v);
+    let rust_vec = borrow_typed_move_vec_as_rust_vec_mut(type_ve, v);
 
     let msg = "popping from empty vec";
     match rust_vec {
@@ -58,7 +58,7 @@ unsafe fn pop_back_discard(
         TypedMoveBorrowedRustVecMut::Address(mut v) => { v.pop().expect(msg);}
         TypedMoveBorrowedRustVecMut::Signer(mut v) => { v.pop().expect(msg); }
         TypedMoveBorrowedRustVecMut::Vector(_t, mut v) => { v.pop().expect(msg); }
-        TypedMoveBorrowedRustVecMut::Struct(mut v) => { todo!(); }
+        TypedMoveBorrowedRustVecMut::Struct(mut _v) => { todo!(); }
         TypedMoveBorrowedRustVecMut::Reference(_t, mut v) => { v.pop().expect(msg); }
     };
 }
@@ -80,48 +80,48 @@ unsafe fn vec_cmp_eq(type_ve: &MoveType, v1: &MoveUntypedVector, v2: &MoveUntype
 
     let is_eq = match type_ve.type_desc {
         TypeDesc::Bool => {
-            let mut rv1 = borrow_move_vec_as_rust_vec::<bool>(v1);
-            let mut rv2 = borrow_move_vec_as_rust_vec::<bool>(v2);
+            let rv1 = borrow_move_vec_as_rust_vec::<bool>(v1);
+            let rv2 = borrow_move_vec_as_rust_vec::<bool>(v2);
             rv1.deref().eq(rv2.deref())
         }
         TypeDesc::U8 => {
-            let mut rv1 = borrow_move_vec_as_rust_vec::<u8>(v1);
-            let mut rv2 = borrow_move_vec_as_rust_vec::<u8>(v2);
+            let rv1 = borrow_move_vec_as_rust_vec::<u8>(v1);
+            let rv2 = borrow_move_vec_as_rust_vec::<u8>(v2);
             rv1.deref().eq(rv2.deref())
         }
         TypeDesc::U16 => {
-            let mut rv1 = borrow_move_vec_as_rust_vec::<u16>(v1);
-            let mut rv2 = borrow_move_vec_as_rust_vec::<u16>(v2);
+            let rv1 = borrow_move_vec_as_rust_vec::<u16>(v1);
+            let rv2 = borrow_move_vec_as_rust_vec::<u16>(v2);
             rv1.deref().eq(rv2.deref())
         }
         TypeDesc::U32 => {
-            let mut rv1 = borrow_move_vec_as_rust_vec::<u32>(v1);
-            let mut rv2 = borrow_move_vec_as_rust_vec::<u32>(v2);
+            let rv1 = borrow_move_vec_as_rust_vec::<u32>(v1);
+            let rv2 = borrow_move_vec_as_rust_vec::<u32>(v2);
             rv1.deref().eq(rv2.deref())
         }
         TypeDesc::U64 => {
-            let mut rv1 = borrow_move_vec_as_rust_vec::<u64>(v1);
-            let mut rv2 = borrow_move_vec_as_rust_vec::<u64>(v2);
+            let rv1 = borrow_move_vec_as_rust_vec::<u64>(v1);
+            let rv2 = borrow_move_vec_as_rust_vec::<u64>(v2);
             rv1.deref().eq(rv2.deref())
         }
         TypeDesc::U128 => {
-            let mut rv1 = borrow_move_vec_as_rust_vec::<u128>(v1);
-            let mut rv2 = borrow_move_vec_as_rust_vec::<u128>(v2);
+            let rv1 = borrow_move_vec_as_rust_vec::<u128>(v1);
+            let rv2 = borrow_move_vec_as_rust_vec::<u128>(v2);
             rv1.deref().eq(rv2.deref())
         }
         TypeDesc::U256 => {
-            let mut rv1 = borrow_move_vec_as_rust_vec::<U256>(v1);
-            let mut rv2 = borrow_move_vec_as_rust_vec::<U256>(v2);
+            let rv1 = borrow_move_vec_as_rust_vec::<U256>(v1);
+            let rv2 = borrow_move_vec_as_rust_vec::<U256>(v2);
             rv1.deref().eq(rv2.deref())
         }
         TypeDesc::Address => {
-            let mut rv1 = borrow_move_vec_as_rust_vec::<MoveAddress>(v1);
-            let mut rv2 = borrow_move_vec_as_rust_vec::<MoveAddress>(v2);
+            let rv1 = borrow_move_vec_as_rust_vec::<MoveAddress>(v1);
+            let rv2 = borrow_move_vec_as_rust_vec::<MoveAddress>(v2);
             rv1.deref().eq(rv2.deref())
         }
         TypeDesc::Signer => {
-            let mut rv1 = borrow_move_vec_as_rust_vec::<MoveSigner>(v1);
-            let mut rv2 = borrow_move_vec_as_rust_vec::<MoveSigner>(v2);
+            let rv1 = borrow_move_vec_as_rust_vec::<MoveSigner>(v1);
+            let rv2 = borrow_move_vec_as_rust_vec::<MoveSigner>(v2);
             rv1.deref().eq(rv2.deref())
         }
         TypeDesc::Vector => {
@@ -162,7 +162,7 @@ unsafe fn struct_cmp_eq(type_ve: &MoveType, s1: &AnyValue, s2: &AnyValue) -> boo
     let st_info = (*(type_ve.type_info)).struct_;
     let fields1 = walk_struct_fields(&st_info, s1);
     let fields2 = walk_struct_fields(&st_info, s2);
-    for ((fld_ty1, fld_ref1, fld_name1), (fld_ty2, fld_ref2, fld_name2)) in Iterator::zip(fields1, fields2) {
+    for ((fld_ty1, fld_ref1, _fld_name1), (fld_ty2, fld_ref2, _fld_name2)) in Iterator::zip(fields1, fields2) {
         let rv1 = borrow_move_value_as_rust_value(fld_ty1, fld_ref1);
         let rv2 = borrow_move_value_as_rust_value(fld_ty2, fld_ref2);
 
