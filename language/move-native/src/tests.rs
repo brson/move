@@ -6,7 +6,7 @@ use super::*;
 use crate::conv::*;
 use crate::rt_types::*;
 use crate::std::string::*;
-use crate::std::vector;
+use crate::vector;
 use alloc::{string::String, vec};
 use core::mem;
 use crate::target_defs::ACCOUNT_ADDRESS_LENGTH;

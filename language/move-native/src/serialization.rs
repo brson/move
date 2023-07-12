@@ -249,7 +249,7 @@ unsafe fn deserialize_vector(type_elt: &MoveType, bytes: &mut &[u8]) -> MoveUnty
             let structinfo = &(*type_elt.type_info).struct_;
             let len: u32 = borsh_from_slice(bytes);
             let len: usize = len as usize;
-            let mut v: MoveUntypedVector = crate::std::vector::empty(&type_elt);
+            let mut v: MoveUntypedVector = crate::vector::empty(&type_elt);
             let mut vb = MoveBorrowedRustVecOfStructMut {
                 inner: &mut v,
                 name: type_elt.name,

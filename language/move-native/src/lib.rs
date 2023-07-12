@@ -286,6 +286,9 @@ mod std;
 /// Conversion from move types to rust types.
 mod conv;
 
+/// Move vector support, used by both `rt` and `std`.
+mod vector;
+
 /// Compatibility with the target platform, e.g. Solana.
 mod target_defs;
 
