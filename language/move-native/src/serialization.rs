@@ -276,14 +276,14 @@ unsafe fn serialize_struct(t: &MoveType, v: &AnyValue, buf: &mut Vec<u8>) {
 
 // fixme this allocates more than it should
 unsafe fn serialize_struct_with_type_info(t: &StructTypeInfo, v: &AnyValue, buf: &mut Vec<u8>) {
-    for (ft, fv, _) in walk_struct_fields(t, v) {
+    for (ft, fv, _) in crate::structs::walk_fields(t, v) {
         serialize_to_buf(ft, fv, buf);
     }
 }
 
 unsafe fn deserialize_struct(t: &MoveType, bytes: &mut &[u8], v: *mut AnyValue) {
     let structinfo = &(*(t.type_info)).struct_;
-    for (ft, fv, _) in walk_struct_fields_mut(structinfo, v) {
+    for (ft, fv, _) in crate::structs::walk_fields_mut(structinfo, v) {
         deserialize_from_slice(ft, bytes, fv);
     }
 }

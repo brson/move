@@ -289,6 +289,9 @@ mod conv;
 /// Move vector support, used by both `rt` and `std`.
 mod vector;
 
+/// Move struct support.
+mod structs;
+
 /// Compatibility with the target platform, e.g. Solana.
 mod target_defs;
 

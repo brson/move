@@ -414,7 +414,7 @@ pub unsafe fn cmp_eq(type_ve: &MoveType, v1: &MoveUntypedVector, v2: &MoveUntype
             for i in 0..v1_len {
                 let anyval_ref1 = borrow(type_ve, v1, i);
                 let anyval_ref2 = borrow(type_ve, v2, i);
-                tmp_result = crate::rt::struct_cmp_eq(type_ve, anyval_ref1, anyval_ref2);
+                tmp_result = crate::structs::cmp_eq(type_ve, anyval_ref1, anyval_ref2);
                 if !tmp_result { break; }
             }
             tmp_result

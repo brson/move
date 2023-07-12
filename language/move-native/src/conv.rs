@@ -7,7 +7,6 @@ use alloc::vec::Vec;
 use core::marker::PhantomData;
 use core::mem;
 use core::ops::{Deref, DerefMut};
-use core::slice;
 use ethnum::U256;
 
 /// This is a placeholder for the unstable `ptr::invalid_mut`.
@@ -425,37 +424,6 @@ pub unsafe fn borrow_typed_move_vec_as_rust_vec_mut<'mv>(
     }
 }
 
-pub unsafe fn walk_struct_fields<'mv>(
-    info: &'mv StructTypeInfo,
-    struct_ref: &'mv AnyValue,
-) -> impl Iterator<Item = (&'mv MoveType, &'mv AnyValue, &'mv StaticName)> {
-    let field_len = usize::try_from(info.field_array_len).expect("overflow");
-    let fields: &'mv [StructFieldInfo] = slice::from_raw_parts(info.field_array_ptr, field_len);
-
-    fields.iter().map(|field| {
-        let struct_base_ptr: *const AnyValue = struct_ref as _;
-        let field_offset = isize::try_from(field.offset).expect("overflow");
-        let field_ptr = struct_base_ptr.offset(field_offset);
-        let field_ref: &'mv AnyValue = &*field_ptr;
-        (&field.type_, field_ref, &field.name)
-    })
-}
-
-pub unsafe fn walk_struct_fields_mut<'mv>(
-    info: &'mv StructTypeInfo,
-    struct_ref: *mut AnyValue,
-) -> impl Iterator<Item = (&'mv MoveType, *mut AnyValue, &'mv StaticName)> {
-    let field_len = usize::try_from(info.field_array_len).expect("overflow");
-    let fields: &'mv [StructFieldInfo] = slice::from_raw_parts(info.field_array_ptr, field_len);
-
-    fields.iter().map(move |field| {
-        let struct_base_ptr: *mut AnyValue = struct_ref as _;
-        let field_offset = isize::try_from(field.offset).expect("overflow");
-        let field_ptr = struct_base_ptr.offset(field_offset);
-        (&field.type_, field_ptr, &field.name)
-    })
-}
-
 impl<'mv> core::fmt::Debug for BorrowedTypedMoveValue<'mv> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
@@ -475,7 +443,7 @@ impl<'mv> core::fmt::Debug for BorrowedTypedMoveValue<'mv> {
             BorrowedTypedMoveValue::Struct(t, v) => unsafe {
                 let st = (*(t.type_info)).struct_;
                 write!(f, "{} {{ ", t.name.as_ascii_str())?;
-                let fields = walk_struct_fields(&st, v);
+                let fields = crate::structs::walk_fields(&st, v);
                 for (type_, ref_, fld_name) in fields {
                     let rv = borrow_move_value_as_rust_value(type_, ref_);
                     write!(f, "{}: ", fld_name.as_ascii_str())?;
