@@ -475,7 +475,7 @@ pub(crate) mod vector {
                     alloc::alloc::dealloc(v.ptr, layout);
                 }
 
-                disarm_drop_bomb(v);
+                drop(v);
             }
             TypeDesc::Reference => drop(move_vec_to_rust_vec::<MoveUntypedReference>(v)),
         }

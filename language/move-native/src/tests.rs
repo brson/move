@@ -165,7 +165,7 @@ fn test_vec_with_vector() {
         assert_eq!(move_vec.length, 1);
 
         // remove this moved value from current scope
-        disarm_drop_bomb(new_element_vec);
+        drop(new_element_vec);
 
         let mut popped_element = vector::empty(&INNER_ELEMENT_TYPE);
         let popped_element_ptr = &mut popped_element as *mut _ as *mut AnyValue;

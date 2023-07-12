@@ -218,16 +218,6 @@
 //!   - examples: `pop_back`
 //!
 //!
-//! # Drop-bombs
-//!
-//! `rt_types` that contain allocations also define `Drop` to panic. This
-//! ensures that they are always destroyed by calling the correct runtime
-//! function, which is helpful in test cases. It does complicate runtime code
-//! that deals with these types though, because the runtime has to call
-//! `mem::forget` on them at the right moments. These cases call the wrapper
-//! function `disarm_drop_bomb` to make clear what is happening.
-//!
-//!
 //! # Panic handling
 //!
 //! This crate does not handle panics at the FFI boundary. When used in a

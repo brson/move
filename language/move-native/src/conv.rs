@@ -33,7 +33,6 @@ pub unsafe fn move_byte_vec_to_rust_vec(mv: MoveByteVector) -> Vec<u8> {
         capacity: mv.capacity,
         length: mv.length,
     };
-    disarm_drop_bomb(mv);
     move_vec_to_rust_vec(ret)
 }
 
@@ -44,7 +43,6 @@ pub fn rust_vec_to_move_byte_vec(rv: Vec<u8>) -> MoveByteVector {
         capacity: mv.capacity,
         length: mv.length,
     };
-    disarm_drop_bomb(mv);
     r
 }
 
@@ -70,7 +68,6 @@ pub unsafe fn move_vec_to_rust_vec<T>(mv: MoveUntypedVector) -> Vec<T> {
         usize::try_from(mv.length).expect("overflow"),
         usize::try_from(mv.capacity).expect("overflow"),
     );
-    disarm_drop_bomb(mv);
     rv
 }
 
