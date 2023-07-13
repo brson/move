@@ -170,7 +170,6 @@ unsafe fn serialize_vector(type_elt: &MoveType, v: &MoveUntypedVector, buf: &mut
             borsh_to_buf(&*v, buf)
         }
         TypedMoveBorrowedRustVec::Vector(t, v) => {
-            // fixme lots of allocations here
             let len: u32 = v.len().try_into().expect("overlong vector");
             borsh_to_buf(&len, buf);
             for elt in v.iter() {
@@ -279,7 +278,6 @@ unsafe fn serialize_struct(t: &MoveType, v: &AnyValue, buf: &mut Vec<u8>) {
     serialize_struct_with_type_info(structinfo, v, buf)
 }
 
-// fixme this allocates more than it should
 unsafe fn serialize_struct_with_type_info(t: &StructTypeInfo, v: &AnyValue, buf: &mut Vec<u8>) {
     for (ft, fv, _) in crate::structs::walk_fields(t, v) {
         serialize_to_buf(ft, fv, buf);
