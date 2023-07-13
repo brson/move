@@ -4,6 +4,7 @@
 
 use crate::conv::*;
 use crate::rt_types::*;
+use core::ptr;
 use ethnum::U256;
 use borsh::{BorshSerialize, BorshDeserialize};
 use alloc::vec::Vec;
@@ -81,46 +82,50 @@ pub unsafe fn deserialize(type_v: &MoveType, bytes: &MoveByteVector, v: *mut Any
 }
 
 unsafe fn deserialize_from_slice(type_v: &MoveType, bytes: &mut &[u8], v: *mut AnyValue) {
-    // fixme mecause these destination pointers are all uninitialized,
-    // it's probably best to use ptr::write to write all of them,
-    // just like in the struct case, since ptr::write is guaranteed
-    // not to read from the destination.
+    // These writes are to uninitialized memory.
+    // Using `ptr::write` guarantees that the destination is never read,
+    // which can happen if the type has destructors.
     let v = raw_borrow_move_value_as_rust_value(type_v, v);
     match v {
         RawBorrowedTypedMoveValue::Bool(vptr) => {
-            *vptr = borsh_from_slice(bytes);
+            let v = borsh_from_slice(bytes);
+            ptr::write(vptr, v);
         }
         RawBorrowedTypedMoveValue::U8(vptr) => {
-            *vptr = borsh_from_slice(bytes);
+            let v = borsh_from_slice(bytes);
+            ptr::write(vptr, v);
         }
         RawBorrowedTypedMoveValue::U16(vptr) => {
-            *vptr = borsh_from_slice(bytes);
+            let v = borsh_from_slice(bytes);
+            ptr::write(vptr, v);
         }
         RawBorrowedTypedMoveValue::U32(vptr) => {
-            *vptr = borsh_from_slice(bytes);
+            let v = borsh_from_slice(bytes);
+            ptr::write(vptr, v);
         }
         RawBorrowedTypedMoveValue::U64(vptr) => {
-            *vptr = borsh_from_slice(bytes);
+            let v = borsh_from_slice(bytes);
+            ptr::write(vptr, v);
         }
         RawBorrowedTypedMoveValue::U128(vptr) => {
-            *vptr = borsh_from_slice(bytes);
+            let v = borsh_from_slice(bytes);
+            ptr::write(vptr, v);
         }
         RawBorrowedTypedMoveValue::U256(vptr) => {
             let v: U256Placeholder = borsh_from_slice(bytes);
-            *vptr = U256(v.0);
+            ptr::write(vptr, U256(v.0));
         }
         RawBorrowedTypedMoveValue::Address(vptr) => {
-            *vptr = borsh_from_slice(bytes);
+            let v = borsh_from_slice(bytes);
+            ptr::write(vptr, v);
         }
         RawBorrowedTypedMoveValue::Signer(vptr) => {
-            *vptr = borsh_from_slice(bytes);
+            let v = borsh_from_slice(bytes);
+            ptr::write(vptr, v);
         }
         RawBorrowedTypedMoveValue::Vector(t, vptr) => {
             let v = deserialize_vector(&t, bytes);
-            // Have to use `write` here because an assignment
-            // will cause Rust to run the dtor on the uninitialized vptr,
-            // setting off the "drop bomb".
-            core::ptr::write(vptr, v);
+            ptr::write(vptr, v);
         }
         RawBorrowedTypedMoveValue::Struct(t, vptr) => {
             deserialize_struct(&t, bytes, vptr);
