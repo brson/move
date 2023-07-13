@@ -264,8 +264,6 @@
 
 extern crate alloc;
 
-mod serialization;
-
 /// Types literally shared with the compiler through crate linkage.
 pub mod shared {
     pub use crate::rt_types::TypeDesc;
@@ -294,6 +292,10 @@ mod structs;
 
 /// Compatibility with the target platform, e.g. Solana.
 mod target_defs;
+
+/// Serialization and deserialization of move types,
+/// support for the `bcs::to_bytes` standard library function.
+mod serialization;
 
 #[cfg(test)]
 mod tests;
