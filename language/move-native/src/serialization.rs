@@ -5,17 +5,8 @@
 use crate::conv::*;
 use crate::rt_types::*;
 use core::ptr;
-use ethnum::U256;
 use borsh::{BorshSerialize, BorshDeserialize};
 use alloc::vec::Vec;
-
-/// A type to serialize u256s.
-///
-/// Because ethnum::U256 isn't compatible with borsh.
-/// This has the same repr(transparent) definition as ethnum::U256.
-#[derive(BorshSerialize, BorshDeserialize)]
-#[repr(transparent)]
-struct U256Placeholder([u128; 2]);
 
 fn borsh_to_buf<T: BorshSerialize>(v: &T, buf: &mut Vec<u8>) {
     borsh::to_writer(buf, v).expect("serialization failure")
@@ -53,8 +44,7 @@ unsafe fn serialize_to_buf(type_v: &MoveType, v: &AnyValue, buf: &mut Vec<u8>) {
             borsh_to_buf(v, buf);
         }
         BorrowedTypedMoveValue::U256(v) => {
-            let v = U256Placeholder(v.0);
-            borsh_to_buf(&v.0, buf);
+            borsh_to_buf(v, buf);
         }
         BorrowedTypedMoveValue::Address(v) => {
             borsh_to_buf(v, buf);
@@ -112,8 +102,8 @@ unsafe fn deserialize_from_slice(type_v: &MoveType, bytes: &mut &[u8], v: *mut A
             ptr::write(vptr, v);
         }
         RawBorrowedTypedMoveValue::U256(vptr) => {
-            let v: U256Placeholder = borsh_from_slice(bytes);
-            ptr::write(vptr, U256(v.0));
+            let v = borsh_from_slice(bytes);
+            ptr::write(vptr, v);
         }
         RawBorrowedTypedMoveValue::Address(vptr) => {
             let v = borsh_from_slice(bytes);
@@ -158,9 +148,6 @@ unsafe fn serialize_vector(type_elt: &MoveType, v: &MoveUntypedVector, buf: &mut
             borsh_to_buf(&*v, buf)
         }
         TypedMoveBorrowedRustVec::U256(v) => {
-            let v: &Vec<U256> = &*v;
-            // safety: U256Placeholder and U256 have the same well-defined representation.
-            let v: &Vec<U256Placeholder> = core::mem::transmute(v);
             borsh_to_buf(&*v, buf)
         }
         TypedMoveBorrowedRustVec::Address(v) => {
@@ -218,12 +205,8 @@ unsafe fn deserialize_vector(type_elt: &MoveType, bytes: &mut &[u8]) -> MoveUnty
             rust_vec_to_move_vec(v)
         }
         TypeDesc::U256 => {
-            unsafe {
-                let v: Vec<U256Placeholder> = borsh_from_slice(bytes);
-                // safety: U256Placeholder and U256 have the same well-defined representation.
-                let v: Vec<U256> = core::mem::transmute(v);
-                rust_vec_to_move_vec(v)
-            }
+            let v: Vec<U256> = borsh_from_slice(bytes);
+            rust_vec_to_move_vec(v)
         }
         TypeDesc::Address => {
             let v: Vec<MoveAddress> = borsh_from_slice(bytes);
