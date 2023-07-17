@@ -177,83 +177,61 @@ unsafe fn serialize_vector(type_elt: &MoveType, v: &MoveUntypedVector, buf: &mut
 }
 
 unsafe fn deserialize_vector(type_elt: &MoveType, bytes: &mut &[u8]) -> MoveUntypedVector {
-    // fixme this should probably create a MoveUntypedVector then
-    // call borrow_typed_move_vec_as_rust_vec_mut, then match on that.
-    match type_elt.type_desc {
-        TypeDesc::Bool => {
-            let v: Vec<bool> = borsh_from_slice(bytes);
-            rust_vec_to_move_vec(v)
+    let mut mv: MoveUntypedVector = crate::vector::empty(&type_elt);
+    let mut rv = borrow_typed_move_vec_as_rust_vec_mut(type_elt, &mut mv);
+    match &mut rv {
+        TypedMoveBorrowedRustVecMut::Bool(v) => {
+            **v = borsh_from_slice(bytes);
         }
-        TypeDesc::U8 => {
-            let v: Vec<u8> = borsh_from_slice(bytes);
-            rust_vec_to_move_vec(v)
+        TypedMoveBorrowedRustVecMut::U8(v) => {
+            **v = borsh_from_slice(bytes);
         }
-        TypeDesc::U16 => {
-            let v: Vec<u16> = borsh_from_slice(bytes);
-            rust_vec_to_move_vec(v)
+        TypedMoveBorrowedRustVecMut::U16(v) => {
+            **v = borsh_from_slice(bytes);
         }
-        TypeDesc::U32 => {
-            let v: Vec<u32> = borsh_from_slice(bytes);
-            rust_vec_to_move_vec(v)
+        TypedMoveBorrowedRustVecMut::U32(v) => {
+            **v = borsh_from_slice(bytes);
         }
-        TypeDesc::U64 => {
-            let v: Vec<u64> = borsh_from_slice(bytes);
-            rust_vec_to_move_vec(v)
+        TypedMoveBorrowedRustVecMut::U64(v) => {
+            **v = borsh_from_slice(bytes);
         }
-        TypeDesc::U128 => {
-            let v: Vec<u128> = borsh_from_slice(bytes);
-            rust_vec_to_move_vec(v)
+        TypedMoveBorrowedRustVecMut::U128(v) => {
+            **v = borsh_from_slice(bytes);
         }
-        TypeDesc::U256 => {
-            let v: Vec<U256> = borsh_from_slice(bytes);
-            rust_vec_to_move_vec(v)
+        TypedMoveBorrowedRustVecMut::U256(v) => {
+            **v = borsh_from_slice(bytes);
         }
-        TypeDesc::Address => {
-            let v: Vec<MoveAddress> = borsh_from_slice(bytes);
-            rust_vec_to_move_vec(v)
+        TypedMoveBorrowedRustVecMut::Address(v) => {
+            **v = borsh_from_slice(bytes);
         }
-        TypeDesc::Signer => {
-            let v: Vec<MoveSigner> = borsh_from_slice(bytes);
-            rust_vec_to_move_vec(v)
+        TypedMoveBorrowedRustVecMut::Signer(v) => {
+            **v = borsh_from_slice(bytes);
         }
-        TypeDesc::Vector => {
-            let vecinfo = &(*type_elt.type_info).vector;
-            let inner_elt_type = vecinfo.element_type;
+        TypedMoveBorrowedRustVecMut::Vector(inner_elt_type, v) => {
             let len: u32 = borsh_from_slice(bytes);
-            let mut v: Vec<MoveUntypedVector> = Vec::with_capacity(len as usize);
+            let len: usize = len as usize;
+            v.reserve_exact(len);
             for _ in 0..len {
                 let eltv = deserialize_vector(&inner_elt_type, bytes);
                 v.push(eltv);
             }
-            rust_vec_to_move_vec(v)
         }
-        TypeDesc::Struct => {
-            // This is going to create a new vector with correct pointer alignment,
-            // reserve space for all elements.
-            // deserialize each element directly into the vector,
-            // then set the final length of the vector.
-
-            let structinfo = &(*type_elt.type_info).struct_;
+        TypedMoveBorrowedRustVecMut::Struct(vs) => {
             let len: u32 = borsh_from_slice(bytes);
             let len: usize = len as usize;
-            let mut v: MoveUntypedVector = crate::vector::empty(&type_elt);
-            let mut vb = MoveBorrowedRustVecOfStructMut {
-                inner: &mut v,
-                name: type_elt.name,
-                type_: structinfo,
-            };
-            vb.reserve_exact(len);
+            vs.reserve_exact(len);
             for i in 0..len {
-                let eltptr = vb.get_mut_unchecked_raw(i);
+                let eltptr = vs.get_mut_unchecked_raw(i);
                 deserialize_struct(type_elt, bytes, eltptr);
             }
-            vb.set_length(len);
-            v
+            vs.set_length(len);
         }
-        TypeDesc::Reference => {
+        TypedMoveBorrowedRustVecMut::Reference(..) => {
             todo!("impossible case?");
         }
     }
+    drop(rv);
+    mv
 }
 
 unsafe fn serialize_struct(t: &MoveType, v: &AnyValue, buf: &mut Vec<u8>) {
