@@ -101,6 +101,16 @@
 //! module. For Solana specifically, we will probably link to `solana_program`,
 //! which links to `std.
 //!
+//! When compiled as a Move runtime, and not for e.g. a host or testing,
+//! this library is compiled as a "staticlib" crate type, which results
+//! in an archive library that does not contain the Rust standard library.
+//!
+//! The crate's manifest though does not declare it as a staticlib.
+//! If it did, then workspace operations like `cargo check` would attempt
+//! to build it as a staticlib for the host, and this library does not declare
+//! the lang-items necessary to build a staticlib for the host.
+//! Instead, the build process for rbpf runs `cargo rustc --crate-type staticlib`.
+//!
 //!
 //! # Platform compatibility
 //!
