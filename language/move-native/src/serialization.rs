@@ -177,7 +177,7 @@ unsafe fn serialize_vector(type_elt: &MoveType, v: &MoveUntypedVector, buf: &mut
 }
 
 unsafe fn deserialize_vector(type_elt: &MoveType, bytes: &mut &[u8]) -> MoveUntypedVector {
-    let mut mv: MoveUntypedVector = crate::vector::empty(&type_elt);
+    let mut mv: MoveUntypedVector = crate::vector::empty(type_elt);
     let mut rv = borrow_typed_move_vec_as_rust_vec_mut(type_elt, &mut mv);
     match &mut rv {
         TypedMoveBorrowedRustVecMut::Bool(v) => {
@@ -212,7 +212,7 @@ unsafe fn deserialize_vector(type_elt: &MoveType, bytes: &mut &[u8]) -> MoveUnty
             let len: usize = len as usize;
             v.reserve_exact(len);
             for _ in 0..len {
-                let eltv = deserialize_vector(&inner_elt_type, bytes);
+                let eltv = deserialize_vector(inner_elt_type, bytes);
                 v.push(eltv);
             }
         }

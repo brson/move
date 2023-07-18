@@ -9,7 +9,7 @@ use core::{mem, ptr};
 use core::ops::Deref;
 
 pub fn empty(type_r: &MoveType) -> MoveUntypedVector {
-    let move_vec = match type_r.type_desc {
+    match type_r.type_desc {
         TypeDesc::Bool => rust_vec_to_move_vec::<bool>(Vec::new()),
         TypeDesc::U8 => rust_vec_to_move_vec::<u8>(Vec::new()),
         TypeDesc::U16 => rust_vec_to_move_vec::<u16>(Vec::new()),
@@ -69,9 +69,7 @@ pub fn empty(type_r: &MoveType) -> MoveUntypedVector {
             }
         },
         TypeDesc::Reference => rust_vec_to_move_vec::<MoveUntypedReference>(Vec::new()),
-    };
-
-    move_vec
+    }
 }
 
 pub unsafe fn destroy_empty(type_ve: &MoveType, v: MoveUntypedVector) {
@@ -122,8 +120,6 @@ pub unsafe fn destroy_empty(type_ve: &MoveType, v: MoveUntypedVector) {
                     .expect("bad size or alignment");
                 alloc::alloc::dealloc(v.ptr, layout);
             }
-
-            drop(v);
         }
         TypeDesc::Reference => drop(move_vec_to_rust_vec::<MoveUntypedReference>(v)),
     }
@@ -424,7 +420,7 @@ pub unsafe fn cmp_eq(type_ve: &MoveType, v1: &MoveUntypedVector, v2: &MoveUntype
 }
 
 impl<'mv> MoveBorrowedRustVecOfStruct<'mv> {
-    pub unsafe fn iter<'s>(&'s self) -> impl Iterator<Item = &'s AnyValue> {
+    pub unsafe fn iter(&self) -> impl Iterator<Item = &AnyValue> {
         let struct_size = usize::try_from(self.type_.size).expect("overflow");
         let vec_len = usize::try_from(self.inner.length).expect("overflow");
         (0..vec_len).map(move |i| {
@@ -432,8 +428,7 @@ impl<'mv> MoveBorrowedRustVecOfStruct<'mv> {
             let offset = i.checked_mul(struct_size).expect("overflow");
             let offset = isize::try_from(offset).expect("overflow");
             let element_ptr = base_ptr.offset(offset);
-            let element_ref = &*(element_ptr as *const AnyValue);
-            element_ref
+            &*(element_ptr as *const AnyValue)
         })
     }
 
@@ -449,8 +444,7 @@ impl<'mv> MoveBorrowedRustVecOfStruct<'mv> {
         let offset = i.checked_mul(struct_size).expect("overflow");
         let offset = isize::try_from(offset).expect("overflow");
         let element_ptr = base_ptr.offset(offset);
-        let element_ref = &*(element_ptr as *const AnyValue);
-        element_ref
+        &*(element_ptr as *const AnyValue)
     }
 }
 
@@ -467,8 +461,7 @@ impl<'mv> MoveBorrowedRustVecOfStructMut<'mv> {
         let offset = i.checked_mul(struct_size).expect("overflow");
         let offset = isize::try_from(offset).expect("overflow");
         let element_ptr = base_ptr.offset(offset);
-        let element_ref = &mut *(element_ptr as *mut AnyValue);
-        element_ref
+        &mut *(element_ptr as *mut AnyValue)
     }
 
     /// Get a pointer to a possibly-uninitialized element.
@@ -484,8 +477,7 @@ impl<'mv> MoveBorrowedRustVecOfStructMut<'mv> {
         let offset = i.checked_mul(struct_size).expect("overflow");
         let offset = isize::try_from(offset).expect("overflow");
         let element_ptr = base_ptr.offset(offset);
-        let element_ptr = element_ptr as *mut AnyValue;
-        element_ptr
+        element_ptr as *mut AnyValue
     }
 
     pub unsafe fn set_length(&mut self, len: usize) {

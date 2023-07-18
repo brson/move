@@ -91,7 +91,7 @@ pub struct StaticTypeName {
 }
 
 impl StaticTypeName {
-    pub unsafe fn as_ascii_str<'a>(&'a self) -> &'a str {
+    pub unsafe fn as_ascii_str(&self) -> &str {
         core::str::from_utf8_unchecked(core::slice::from_raw_parts(
             self.ptr,
             usize::try_from(self.len).expect("overflow"),

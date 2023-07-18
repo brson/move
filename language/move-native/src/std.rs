@@ -74,9 +74,7 @@ mod hash {
         let rust_vec = move_byte_vec_to_rust_vec(ptr);
 
         let hash_vec = Sha256::digest(rust_vec.as_slice()).to_vec();
-        let move_vec = rust_vec_to_move_byte_vec(hash_vec);
-
-        move_vec
+        rust_vec_to_move_byte_vec(hash_vec)
     }
 
     #[export_name = "move_native_hash_sha3_256"]
@@ -84,9 +82,7 @@ mod hash {
         let rust_vec = move_byte_vec_to_rust_vec(ptr);
 
         let hash_vec = Sha3_256::digest(rust_vec.as_slice()).to_vec();
-        let move_vec = rust_vec_to_move_byte_vec(hash_vec);
-
-        move_vec
+        rust_vec_to_move_byte_vec(hash_vec)
     }
 }
 
@@ -109,10 +105,7 @@ pub(crate) mod string {
         let rust_vec = borrow_move_byte_vec_as_rust_vec(v);
         let res = str::from_utf8(&rust_vec);
 
-        match res {
-            Ok(_) => true,
-            Err(_) => false,
-        }
+        res.is_ok()
     }
 
     #[export_name = "move_native_string_internal_is_char_boundary"]
