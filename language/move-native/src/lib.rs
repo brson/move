@@ -235,7 +235,6 @@
 //! - `move-core-types::value`
 
 #![no_std]
-
 // NB Solana's Rust seems to allow use of unstable features.
 // This wouldn't normally be allowed.
 #![cfg_attr(feature = "solana", feature(default_alloc_error_handler))]
@@ -244,9 +243,7 @@ extern crate alloc;
 
 /// Types literally shared with the compiler through crate linkage.
 pub mod shared {
-    pub use crate::rt_types::TypeDesc;
-    pub use crate::rt_types::MOVE_UNTYPED_VEC_DESC_SIZE;
-    pub use crate::rt_types::MOVE_TYPE_DESC_SIZE;
+    pub use crate::rt_types::{TypeDesc, MOVE_TYPE_DESC_SIZE, MOVE_UNTYPED_VEC_DESC_SIZE};
 }
 
 /// Types known to the compiler.
