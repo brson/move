@@ -51,6 +51,24 @@ pub struct MoveBorrowedRustVecMut<'mv, T> {
     original: &'mv mut MoveUntypedVector,
 }
 
+/// A vector of Move structs.
+///
+/// Since we can't instantiate Move structs as Rust structs, this is a
+/// container that unsafely implements exactly the ops needed to deal with
+/// Move's `vector<T>`.
+#[derive(Debug)]
+pub struct MoveBorrowedRustVecOfStruct<'mv> {
+    inner: &'mv MoveUntypedVector,
+    type_: &'mv StructTypeInfo,
+    full_type: &'mv MoveType,
+}
+
+#[derive(Debug)]
+pub struct MoveBorrowedRustVecOfStructMut<'mv> {
+    inner: &'mv mut MoveUntypedVector,
+    type_: &'mv StructTypeInfo,
+}
+
 impl<'mv> TypedMoveBorrowedRustVec<'mv> {
     pub unsafe fn new(
         type_: &'mv MoveType,
@@ -74,11 +92,9 @@ impl<'mv> TypedMoveBorrowedRustVec<'mv> {
                 *(*type_.type_info).vector.element_type,
                 MoveBorrowedRustVec::new(mv),
             ),
-            TypeDesc::Struct => TypedMoveBorrowedRustVec::Struct(MoveBorrowedRustVecOfStruct {
-                inner: mv,
-                name: type_.name,
-                type_: &(*type_.type_info).struct_,
-            }),
+            TypeDesc::Struct => TypedMoveBorrowedRustVec::Struct(
+                MoveBorrowedRustVecOfStruct::new(type_, mv)
+            ),
             TypeDesc::Reference => TypedMoveBorrowedRustVec::Reference(
                 *(*type_.type_info).reference.element_type,
                 MoveBorrowedRustVec::new(mv),
@@ -122,11 +138,9 @@ impl<'mv> TypedMoveBorrowedRustVecMut<'mv> {
                 *(*type_.type_info).vector.element_type,
                 MoveBorrowedRustVecMut::new(mv),
             ),
-            TypeDesc::Struct => TypedMoveBorrowedRustVecMut::Struct(MoveBorrowedRustVecOfStructMut {
-                inner: mv,
-                name: type_.name,
-                type_: &(*type_.type_info).struct_,
-            }),
+            TypeDesc::Struct => TypedMoveBorrowedRustVecMut::Struct(
+                MoveBorrowedRustVecOfStructMut::new(type_, mv)
+            ),
             TypeDesc::Reference => TypedMoveBorrowedRustVecMut::Reference(
                 *(*type_.type_info).reference.element_type,
                 MoveBorrowedRustVecMut::new(mv),
@@ -214,6 +228,27 @@ impl<'mv, T> Deref for MoveBorrowedRustVecMut<'mv, T> {
 impl<'mv, T> DerefMut for MoveBorrowedRustVecMut<'mv, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.inner
+    }
+}
+
+impl<'mv> MoveBorrowedRustVecOfStruct<'mv> {
+    unsafe fn new(ty: &'mv MoveType, mv: &'mv MoveUntypedVector) -> MoveBorrowedRustVecOfStruct<'mv> {
+        assert_eq!(ty.type_desc, TypeDesc::Struct);
+        MoveBorrowedRustVecOfStruct {
+            inner: mv,
+            type_: &(*ty.type_info).struct_,
+            full_type: ty
+        }
+    }
+}
+
+impl<'mv> MoveBorrowedRustVecOfStructMut<'mv> {
+    unsafe fn new(ty: &'mv MoveType, mv: &'mv mut MoveUntypedVector) -> MoveBorrowedRustVecOfStructMut<'mv> {
+        assert_eq!(ty.type_desc, TypeDesc::Struct);
+        MoveBorrowedRustVecOfStructMut {
+            inner: mv,
+            type_: &(*ty.type_info).struct_,
+        }
     }
 }
 
@@ -644,6 +679,14 @@ pub unsafe fn cmp_eq(type_ve: &MoveType, v1: &MoveUntypedVector, v2: &MoveUntype
 }
 
 impl<'mv> MoveBorrowedRustVecOfStruct<'mv> {
+    pub fn len(&self) -> usize {
+        self.inner.length.try_into().expect("overflow")
+    }
+
+    pub fn type_(&self) -> &MoveType {
+        self.full_type
+    }
+
     pub unsafe fn iter(&self) -> impl Iterator<Item = &AnyValue> {
         let struct_size = usize::try_from(self.type_.size).expect("overflow");
         let vec_len = usize::try_from(self.inner.length).expect("overflow");

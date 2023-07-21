@@ -81,25 +81,6 @@ pub fn rust_vec_to_move_vec<T>(mut rv: Vec<T>) -> MoveUntypedVector {
     mv
 }
 
-/// A vector of Move structs.
-///
-/// Since we can't instantiate Move structs as Rust structs, this is a
-/// container that unsafely implements exactly the ops needed to deal with
-/// Move's `vector<T>`.
-#[derive(Debug)]
-pub struct MoveBorrowedRustVecOfStruct<'mv> {
-    pub inner: &'mv MoveUntypedVector,
-    pub name: StaticTypeName,
-    pub type_: &'mv StructTypeInfo,
-}
-
-#[derive(Debug)]
-pub struct MoveBorrowedRustVecOfStructMut<'mv> {
-    pub inner: &'mv mut MoveUntypedVector,
-    pub name: StaticTypeName,
-    pub type_: &'mv StructTypeInfo,
-}
-
 pub enum BorrowedTypedMoveValue<'mv> {
     Bool(&'mv bool),
     U8(&'mv u8),
@@ -260,12 +241,7 @@ impl<'mv> core::fmt::Debug for TypedMoveBorrowedRustVec<'mv> {
                 f.write_str("[")?;
                 unsafe {
                     for vref in s.iter() {
-                        let type_ = MoveType {
-                            name: s.name,
-                            type_desc: TypeDesc::Struct,
-                            type_info: &TypeInfo { struct_: *s.type_ },
-                        };
-                        let e = borrow_move_value_as_rust_value(&type_, vref);
+                        let e = borrow_move_value_as_rust_value(s.type_(), vref);
                         e.fmt(f)?;
                         f.write_str(", ")?;
                     }
