@@ -2,7 +2,7 @@
 // Copyright (c) The Move Contributors
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::{conv::*, rt_types::*};
+use crate::{conv::*, rt_types::*, vector::*};
 use alloc::vec::Vec;
 use borsh::{BorshDeserialize, BorshSerialize};
 use core::ptr;
@@ -126,7 +126,7 @@ unsafe fn deserialize_from_slice(type_v: &MoveType, bytes: &mut &[u8], v: *mut A
 }
 
 unsafe fn serialize_vector(type_elt: &MoveType, v: &MoveUntypedVector, buf: &mut Vec<u8>) {
-    let v = borrow_typed_move_vec_as_rust_vec(type_elt, v);
+    let v = TypedMoveBorrowedRustVec::new(type_elt, v);
     match v {
         TypedMoveBorrowedRustVec::Bool(v) => borsh_to_buf(&*v, buf),
         TypedMoveBorrowedRustVec::U8(v) => borsh_to_buf(&*v, buf),
@@ -159,7 +159,7 @@ unsafe fn serialize_vector(type_elt: &MoveType, v: &MoveUntypedVector, buf: &mut
 
 unsafe fn deserialize_vector(type_elt: &MoveType, bytes: &mut &[u8]) -> MoveUntypedVector {
     let mut mv: MoveUntypedVector = crate::vector::empty(type_elt);
-    let mut rv = borrow_typed_move_vec_as_rust_vec_mut(type_elt, &mut mv);
+    let mut rv = TypedMoveBorrowedRustVecMut::new(type_elt, &mut mv);
     match &mut rv {
         TypedMoveBorrowedRustVecMut::Bool(v) => {
             **v = borsh_from_slice(bytes);
