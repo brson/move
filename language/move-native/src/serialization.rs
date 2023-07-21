@@ -145,7 +145,7 @@ unsafe fn serialize_vector(type_elt: &MoveType, v: &MoveUntypedVector, buf: &mut
             }
         }
         TypedMoveBorrowedRustVec::Struct(v) => {
-            let len: u32 = v.inner.length.try_into().expect("overlong vector");
+            let len: u32 = v.len().try_into().expect("overlong vector");
             borsh_to_buf(&len, buf);
             for elt in v.iter() {
                 serialize_struct_with_type_info(v.type_, elt, buf);
