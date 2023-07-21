@@ -160,9 +160,6 @@ fn test_vec_with_vector() {
         vector::push_back(&OUTER_ELEMENT_TYPE, &mut move_vec, new_element_vec_ptr);
         assert_eq!(move_vec.length, 1);
 
-        // remove this moved value from current scope
-        drop(new_element_vec);
-
         let mut popped_element = vector::empty(&INNER_ELEMENT_TYPE);
         let popped_element_ptr = &mut popped_element as *mut _ as *mut AnyValue;
 
