@@ -9,7 +9,7 @@ use core::{
 };
 use crate::vector::{
     MoveBorrowedRustVec,
-    MoveBorrowedRustVecMut,
+    TypedMoveBorrowedRustVec,
 };
 
 /// This is a placeholder for the unstable `ptr::invalid_mut`.
@@ -197,119 +197,6 @@ pub unsafe fn raw_borrow_move_value_as_rust_value(
     }
 }
 
-pub enum TypedMoveBorrowedRustVec<'mv> {
-    Bool(MoveBorrowedRustVec<'mv, bool>),
-    U8(MoveBorrowedRustVec<'mv, u8>),
-    U16(MoveBorrowedRustVec<'mv, u16>),
-    U32(MoveBorrowedRustVec<'mv, u32>),
-    U64(MoveBorrowedRustVec<'mv, u64>),
-    U128(MoveBorrowedRustVec<'mv, u128>),
-    U256(MoveBorrowedRustVec<'mv, U256>),
-    Address(MoveBorrowedRustVec<'mv, MoveAddress>),
-    Signer(MoveBorrowedRustVec<'mv, MoveSigner>),
-    Vector(MoveType, MoveBorrowedRustVec<'mv, MoveUntypedVector>),
-    Struct(MoveBorrowedRustVecOfStruct<'mv>),
-    Reference(MoveType, MoveBorrowedRustVec<'mv, MoveUntypedReference>),
-    // todo
-}
-
-#[derive(Debug)]
-pub enum TypedMoveBorrowedRustVecMut<'mv> {
-    Bool(MoveBorrowedRustVecMut<'mv, bool>),
-    U8(MoveBorrowedRustVecMut<'mv, u8>),
-    U16(MoveBorrowedRustVecMut<'mv, u16>),
-    U32(MoveBorrowedRustVecMut<'mv, u32>),
-    U64(MoveBorrowedRustVecMut<'mv, u64>),
-    U128(MoveBorrowedRustVecMut<'mv, u128>),
-    U256(MoveBorrowedRustVecMut<'mv, U256>),
-    Address(MoveBorrowedRustVecMut<'mv, MoveAddress>),
-    Signer(MoveBorrowedRustVecMut<'mv, MoveSigner>),
-    Vector(MoveType, MoveBorrowedRustVecMut<'mv, MoveUntypedVector>),
-    Struct(MoveBorrowedRustVecOfStructMut<'mv>),
-    Reference(MoveType, MoveBorrowedRustVecMut<'mv, MoveUntypedReference>),
-    // todo
-}
-
-pub unsafe fn borrow_typed_move_vec_as_rust_vec<'mv>(
-    type_: &'mv MoveType,
-    mv: &'mv MoveUntypedVector,
-) -> TypedMoveBorrowedRustVec<'mv> {
-    match type_.type_desc {
-        TypeDesc::Bool => TypedMoveBorrowedRustVec::Bool(MoveBorrowedRustVec::new(mv)),
-        TypeDesc::U8 => TypedMoveBorrowedRustVec::U8(MoveBorrowedRustVec::new(mv)),
-        TypeDesc::U16 => TypedMoveBorrowedRustVec::U16(MoveBorrowedRustVec::new(mv)),
-        TypeDesc::U32 => TypedMoveBorrowedRustVec::U32(MoveBorrowedRustVec::new(mv)),
-        TypeDesc::U64 => TypedMoveBorrowedRustVec::U64(MoveBorrowedRustVec::new(mv)),
-        TypeDesc::U128 => TypedMoveBorrowedRustVec::U128(MoveBorrowedRustVec::new(mv)),
-        TypeDesc::U256 => TypedMoveBorrowedRustVec::U256(MoveBorrowedRustVec::new(mv)),
-        TypeDesc::Address => {
-            TypedMoveBorrowedRustVec::Address(MoveBorrowedRustVec::new(mv))
-        }
-        TypeDesc::Signer => {
-            TypedMoveBorrowedRustVec::Signer(MoveBorrowedRustVec::new(mv))
-        }
-        TypeDesc::Vector => TypedMoveBorrowedRustVec::Vector(
-            *(*type_.type_info).vector.element_type,
-            MoveBorrowedRustVec::new(mv),
-        ),
-        TypeDesc::Struct => TypedMoveBorrowedRustVec::Struct(MoveBorrowedRustVecOfStruct {
-            inner: mv,
-            name: type_.name,
-            type_: &(*type_.type_info).struct_,
-        }),
-        TypeDesc::Reference => TypedMoveBorrowedRustVec::Reference(
-            *(*type_.type_info).reference.element_type,
-            MoveBorrowedRustVec::new(mv),
-        ),
-    }
-}
-
-pub unsafe fn borrow_typed_move_vec_as_rust_vec_mut<'mv>(
-    type_: &'mv MoveType,
-    mv: &'mv mut MoveUntypedVector,
-) -> TypedMoveBorrowedRustVecMut<'mv> {
-    match type_.type_desc {
-        TypeDesc::Bool => {
-            TypedMoveBorrowedRustVecMut::Bool(MoveBorrowedRustVecMut::new(mv))
-        }
-        TypeDesc::U8 => TypedMoveBorrowedRustVecMut::U8(MoveBorrowedRustVecMut::new(mv)),
-        TypeDesc::U16 => {
-            TypedMoveBorrowedRustVecMut::U16(MoveBorrowedRustVecMut::new(mv))
-        }
-        TypeDesc::U32 => {
-            TypedMoveBorrowedRustVecMut::U32(MoveBorrowedRustVecMut::new(mv))
-        }
-        TypeDesc::U64 => {
-            TypedMoveBorrowedRustVecMut::U64(MoveBorrowedRustVecMut::new(mv))
-        }
-        TypeDesc::U128 => {
-            TypedMoveBorrowedRustVecMut::U128(MoveBorrowedRustVecMut::new(mv))
-        }
-        TypeDesc::U256 => {
-            TypedMoveBorrowedRustVecMut::U256(MoveBorrowedRustVecMut::new(mv))
-        }
-        TypeDesc::Address => {
-            TypedMoveBorrowedRustVecMut::Address(MoveBorrowedRustVecMut::new(mv))
-        }
-        TypeDesc::Signer => {
-            TypedMoveBorrowedRustVecMut::Signer(MoveBorrowedRustVecMut::new(mv))
-        }
-        TypeDesc::Vector => TypedMoveBorrowedRustVecMut::Vector(
-            *(*type_.type_info).vector.element_type,
-            MoveBorrowedRustVecMut::new(mv),
-        ),
-        TypeDesc::Struct => TypedMoveBorrowedRustVecMut::Struct(MoveBorrowedRustVecOfStructMut {
-            inner: mv,
-            name: type_.name,
-            type_: &(*type_.type_info).struct_,
-        }),
-        TypeDesc::Reference => TypedMoveBorrowedRustVecMut::Reference(
-            *(*type_.type_info).reference.element_type,
-            MoveBorrowedRustVecMut::new(mv),
-        ),
-    }
-}
-
 impl<'mv> core::fmt::Debug for BorrowedTypedMoveValue<'mv> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
@@ -323,7 +210,7 @@ impl<'mv> core::fmt::Debug for BorrowedTypedMoveValue<'mv> {
             BorrowedTypedMoveValue::Address(v) => v.fmt(f),
             BorrowedTypedMoveValue::Signer(v) => v.fmt(f),
             BorrowedTypedMoveValue::Vector(t, v) => unsafe {
-                let rv = borrow_typed_move_vec_as_rust_vec(t, v);
+                let rv = TypedMoveBorrowedRustVec::new(t, v);
                 rv.fmt(f)
             },
             BorrowedTypedMoveValue::Struct(t, v) => unsafe {
@@ -363,7 +250,7 @@ impl<'mv> core::fmt::Debug for TypedMoveBorrowedRustVec<'mv> {
                 let mut dbg = f.debug_list();
                 for e in v.iter() {
                     unsafe {
-                        let e = borrow_typed_move_vec_as_rust_vec(t, e);
+                        let e = TypedMoveBorrowedRustVec::new(t, e);
                         dbg.entry(&e);
                     }
                 }
