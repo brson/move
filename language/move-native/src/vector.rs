@@ -4,7 +4,101 @@
 
 use crate::{conv::*, rt_types::*};
 use alloc::vec::Vec;
-use core::{mem, ops::Deref, ptr};
+use core::{mem, ops::{Deref, DerefMut}, ptr};
+use core::marker::PhantomData;
+
+pub struct MoveBorrowedRustVec<'mv, T> {
+    inner: Vec<T>,
+    _lifetime: PhantomData<&'mv ()>,
+}
+
+#[derive(Debug)]
+pub struct MoveBorrowedRustVecMut<'mv, T> {
+    inner: Vec<T>,
+    original: &'mv mut MoveUntypedVector,
+}
+
+impl<'mv, T> MoveBorrowedRustVec<'mv, T> {
+    pub unsafe fn new(mv: &MoveUntypedVector) -> MoveBorrowedRustVec<'_, T> {
+        let rv = Vec::from_raw_parts(
+            mv.ptr as *mut T,
+            usize::try_from(mv.length).expect("overflow"),
+            usize::try_from(mv.capacity).expect("overflow"),
+        );
+        MoveBorrowedRustVec {
+            inner: rv,
+            _lifetime: PhantomData,
+        }
+    }
+}
+
+impl<'mv, T> MoveBorrowedRustVecMut<'mv, T> {
+    pub unsafe fn new(
+        mv: &mut MoveUntypedVector,
+    ) -> MoveBorrowedRustVecMut<'_, T> {
+        let rv = Vec::from_raw_parts(
+            mv.ptr as *mut T,
+            usize::try_from(mv.length).expect("overflow"),
+            usize::try_from(mv.capacity).expect("overflow"),
+        );
+        MoveBorrowedRustVecMut {
+            inner: rv,
+            original: mv,
+        }
+    }
+}
+
+impl<'mv, T> Drop for MoveBorrowedRustVec<'mv, T> {
+    fn drop(&mut self) {
+        let rv = mem::take(&mut self.inner);
+
+        /* mem::forget takes rv by value so it is no longer in scope to be
+        passed to any other function.  We call forget here because
+        rv is type Vec, which owns its interior buffer pointer, but
+        this Vec was temporarily fabricated from a MoveUntypedVector,
+        which actually owns that buffer. So forgetting the Vec quietly
+        destroys it without running the Vec destructor - so that the
+        original MoveUntypedVector can continue owning that buffer.
+        The only reason to call mem::forget is to not run a
+        destructor. */
+
+        mem::forget(rv);
+    }
+}
+
+impl<'mv, T> Drop for MoveBorrowedRustVecMut<'mv, T> {
+    fn drop(&mut self) {
+        let mut rv = mem::take(&mut self.inner);
+
+        self.original.length = u64::try_from(rv.len()).expect("overflow");
+        self.original.capacity = u64::try_from(rv.capacity()).expect("overflow");
+        self.original.ptr = rv.as_mut_ptr() as *mut u8;
+
+        mem::forget(rv);
+    }
+}
+
+impl<'mv, T> Deref for MoveBorrowedRustVec<'mv, T> {
+    type Target = Vec<T>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl<'mv, T> Deref for MoveBorrowedRustVecMut<'mv, T> {
+    type Target = Vec<T>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl<'mv, T> DerefMut for MoveBorrowedRustVecMut<'mv, T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
+    }
+}
 
 pub fn empty(type_r: &MoveType) -> MoveUntypedVector {
     match type_r.type_desc {
@@ -351,48 +445,48 @@ pub unsafe fn cmp_eq(type_ve: &MoveType, v1: &MoveUntypedVector, v2: &MoveUntype
 
     let is_eq = match type_ve.type_desc {
         TypeDesc::Bool => {
-            let rv1 = borrow_move_vec_as_rust_vec::<bool>(v1);
-            let rv2 = borrow_move_vec_as_rust_vec::<bool>(v2);
+            let rv1 = MoveBorrowedRustVec::<bool>::new(v1);
+            let rv2 = MoveBorrowedRustVec::<bool>::new(v2);
             rv1.deref().eq(rv2.deref())
         }
         TypeDesc::U8 => {
-            let rv1 = borrow_move_vec_as_rust_vec::<u8>(v1);
-            let rv2 = borrow_move_vec_as_rust_vec::<u8>(v2);
+            let rv1 = MoveBorrowedRustVec::<u8>::new(v1);
+            let rv2 = MoveBorrowedRustVec::<u8>::new(v2);
             rv1.deref().eq(rv2.deref())
         }
         TypeDesc::U16 => {
-            let rv1 = borrow_move_vec_as_rust_vec::<u16>(v1);
-            let rv2 = borrow_move_vec_as_rust_vec::<u16>(v2);
+            let rv1 = MoveBorrowedRustVec::<u16>::new(v1);
+            let rv2 = MoveBorrowedRustVec::<u16>::new(v2);
             rv1.deref().eq(rv2.deref())
         }
         TypeDesc::U32 => {
-            let rv1 = borrow_move_vec_as_rust_vec::<u32>(v1);
-            let rv2 = borrow_move_vec_as_rust_vec::<u32>(v2);
+            let rv1 = MoveBorrowedRustVec::<u32>::new(v1);
+            let rv2 = MoveBorrowedRustVec::<u32>::new(v2);
             rv1.deref().eq(rv2.deref())
         }
         TypeDesc::U64 => {
-            let rv1 = borrow_move_vec_as_rust_vec::<u64>(v1);
-            let rv2 = borrow_move_vec_as_rust_vec::<u64>(v2);
+            let rv1 = MoveBorrowedRustVec::<u64>::new(v1);
+            let rv2 = MoveBorrowedRustVec::<u64>::new(v2);
             rv1.deref().eq(rv2.deref())
         }
         TypeDesc::U128 => {
-            let rv1 = borrow_move_vec_as_rust_vec::<u128>(v1);
-            let rv2 = borrow_move_vec_as_rust_vec::<u128>(v2);
+            let rv1 = MoveBorrowedRustVec::<u128>::new(v1);
+            let rv2 = MoveBorrowedRustVec::<u128>::new(v2);
             rv1.deref().eq(rv2.deref())
         }
         TypeDesc::U256 => {
-            let rv1 = borrow_move_vec_as_rust_vec::<U256>(v1);
-            let rv2 = borrow_move_vec_as_rust_vec::<U256>(v2);
+            let rv1 = MoveBorrowedRustVec::<U256>::new(v1);
+            let rv2 = MoveBorrowedRustVec::<U256>::new(v2);
             rv1.deref().eq(rv2.deref())
         }
         TypeDesc::Address => {
-            let rv1 = borrow_move_vec_as_rust_vec::<MoveAddress>(v1);
-            let rv2 = borrow_move_vec_as_rust_vec::<MoveAddress>(v2);
+            let rv1 = MoveBorrowedRustVec::<MoveAddress>::new(v1);
+            let rv2 = MoveBorrowedRustVec::<MoveAddress>::new(v2);
             rv1.deref().eq(rv2.deref())
         }
         TypeDesc::Signer => {
-            let rv1 = borrow_move_vec_as_rust_vec::<MoveSigner>(v1);
-            let rv2 = borrow_move_vec_as_rust_vec::<MoveSigner>(v2);
+            let rv1 = MoveBorrowedRustVec::<MoveSigner>::new(v1);
+            let rv2 = MoveBorrowedRustVec::<MoveSigner>::new(v2);
             rv1.deref().eq(rv2.deref())
         }
         TypeDesc::Vector => {

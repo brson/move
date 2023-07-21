@@ -154,7 +154,8 @@ pub(crate) mod string {
 }
 
 mod type_name {
-    use crate::{conv::*, rt_types::*};
+    use crate::rt_types::*;
+    use crate::vector::MoveBorrowedRustVecMut;
 
     #[export_name = "move_native_type_name_get"]
     unsafe extern "C" fn get(type_: &MoveType) -> TypeName {
@@ -166,7 +167,7 @@ mod type_name {
         };
         let mut byte_vector = crate::vector::empty(&byte_type);
         {
-            let mut rust_byte_vector = borrow_move_vec_as_rust_vec_mut::<u8>(&mut byte_vector);
+            let mut rust_byte_vector = MoveBorrowedRustVecMut::<u8>::new(&mut byte_vector);
             rust_byte_vector.reserve_exact(name_slice.len());
             for byte in name_slice.bytes() {
                 rust_byte_vector.push(byte);
