@@ -645,8 +645,10 @@ pub unsafe fn copy(type_ve: &MoveType, dstv: &mut MoveUntypedVector, srcv: &Move
 }
 
 pub unsafe fn cmp_eq(type_ve: &MoveType, v1: &MoveUntypedVector, v2: &MoveUntypedVector) -> bool {
-    let v1_len = length(type_ve, v1);
-    let v2_len = length(type_ve, v2);
+    let v1t = TypedMoveBorrowedRustVec::new(type_ve, v1);
+    let v2t = TypedMoveBorrowedRustVec::new(type_ve, v2);
+    let v1_len = v1t.len();
+    let v2_len = v2t.len();
 
     if v1_len != v2_len {
         return false;
@@ -703,8 +705,8 @@ pub unsafe fn cmp_eq(type_ve: &MoveType, v1: &MoveUntypedVector, v2: &MoveUntype
             let inner_element_type = *(*type_ve.type_info).vector.element_type;
             let mut tmp_result = true;
             for i in 0..v1_len {
-                let anyval_ref1 = borrow(type_ve, v1, i);
-                let anyval_ref2 = borrow(type_ve, v2, i);
+                let anyval_ref1 = v1t.borrow(i);
+                let anyval_ref2 = v2t.borrow(i);
                 let mv_ut_vec1 = &*(anyval_ref1 as *const AnyValue as *const MoveUntypedVector);
                 let mv_ut_vec2 = &*(anyval_ref2 as *const AnyValue as *const MoveUntypedVector);
                 tmp_result = cmp_eq(&inner_element_type, mv_ut_vec1, mv_ut_vec2);
@@ -718,8 +720,8 @@ pub unsafe fn cmp_eq(type_ve: &MoveType, v1: &MoveUntypedVector, v2: &MoveUntype
             assert!(v1_len == v2_len, "unexpected vec cmp lengths");
             let mut tmp_result = true;
             for i in 0..v1_len {
-                let anyval_ref1 = borrow(type_ve, v1, i);
-                let anyval_ref2 = borrow(type_ve, v2, i);
+                let anyval_ref1 = v1t.borrow(i);
+                let anyval_ref2 = v2t.borrow(i);
                 tmp_result = crate::structs::cmp_eq(type_ve, anyval_ref1, anyval_ref2);
                 if !tmp_result {
                     break;
