@@ -539,6 +539,48 @@ impl<'mv> TypedMoveBorrowedRustVecMut<'mv> {
             TypedMoveBorrowedRustVecMut::Reference(_t, ref mut v) => v.swap(i, j),
         }
     }
+
+    fn pop_back_discard(&mut self) {
+        let msg = "popping from empty vec";
+        match self {
+            TypedMoveBorrowedRustVecMut::Bool(ref mut v) => {
+                v.pop().expect(msg);
+            }
+            TypedMoveBorrowedRustVecMut::U8(ref mut v) => {
+                v.pop().expect(msg);
+            }
+            TypedMoveBorrowedRustVecMut::U16(ref mut v) => {
+                v.pop().expect(msg);
+            }
+            TypedMoveBorrowedRustVecMut::U32(ref mut v) => {
+                v.pop().expect(msg);
+            }
+            TypedMoveBorrowedRustVecMut::U64(ref mut v) => {
+                v.pop().expect(msg);
+            }
+            TypedMoveBorrowedRustVecMut::U128(ref mut v) => {
+                v.pop().expect(msg);
+            }
+            TypedMoveBorrowedRustVecMut::U256(ref mut v) => {
+                v.pop().expect(msg);
+            }
+            TypedMoveBorrowedRustVecMut::Address(ref mut v) => {
+                v.pop().expect(msg);
+            }
+            TypedMoveBorrowedRustVecMut::Signer(ref mut v) => {
+                v.pop().expect(msg);
+            }
+            TypedMoveBorrowedRustVecMut::Vector(_t, ref mut v) => {
+                v.pop().expect(msg);
+            }
+            TypedMoveBorrowedRustVecMut::Struct(ref mut _v) => {
+                todo!();
+            }
+            TypedMoveBorrowedRustVecMut::Reference(_t, ref mut v) => {
+                v.pop().expect(msg);
+            }
+        };
+    }
 }
 
 pub unsafe fn copy(type_ve: &MoveType, dstv: &mut MoveUntypedVector, srcv: &MoveUntypedVector) {
@@ -553,53 +595,15 @@ pub unsafe fn copy(type_ve: &MoveType, dstv: &mut MoveUntypedVector, srcv: &Move
     // Now copy.
     for i in 0..src_len {
         let se = borrow(type_ve, srcv, i);
+        // fixme this is incorrect for vectors and structs with vec fields
         let septr = se as *const AnyValue as *mut AnyValue;
         push_back(type_ve, dstv, septr);
     }
 }
 
 unsafe fn pop_back_discard(type_ve: &MoveType, v: &mut MoveUntypedVector) {
-    let rust_vec = TypedMoveBorrowedRustVecMut::new(type_ve, v);
-
-    let msg = "popping from empty vec";
-    match rust_vec {
-        TypedMoveBorrowedRustVecMut::Bool(mut v) => {
-            v.pop().expect(msg);
-        }
-        TypedMoveBorrowedRustVecMut::U8(mut v) => {
-            v.pop().expect(msg);
-        }
-        TypedMoveBorrowedRustVecMut::U16(mut v) => {
-            v.pop().expect(msg);
-        }
-        TypedMoveBorrowedRustVecMut::U32(mut v) => {
-            v.pop().expect(msg);
-        }
-        TypedMoveBorrowedRustVecMut::U64(mut v) => {
-            v.pop().expect(msg);
-        }
-        TypedMoveBorrowedRustVecMut::U128(mut v) => {
-            v.pop().expect(msg);
-        }
-        TypedMoveBorrowedRustVecMut::U256(mut v) => {
-            v.pop().expect(msg);
-        }
-        TypedMoveBorrowedRustVecMut::Address(mut v) => {
-            v.pop().expect(msg);
-        }
-        TypedMoveBorrowedRustVecMut::Signer(mut v) => {
-            v.pop().expect(msg);
-        }
-        TypedMoveBorrowedRustVecMut::Vector(_t, mut v) => {
-            v.pop().expect(msg);
-        }
-        TypedMoveBorrowedRustVecMut::Struct(mut _v) => {
-            todo!();
-        }
-        TypedMoveBorrowedRustVecMut::Reference(_t, mut v) => {
-            v.pop().expect(msg);
-        }
-    };
+    let mut rust_vec = TypedMoveBorrowedRustVecMut::new(type_ve, v);
+    rust_vec.pop_back_discard()
 }
 
 pub unsafe fn cmp_eq(type_ve: &MoveType, v1: &MoveUntypedVector, v2: &MoveUntypedVector) -> bool {
