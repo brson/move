@@ -391,6 +391,28 @@ impl<'mv> TypedMoveBorrowedRustVec<'mv> {
 
         u64::try_from(len).expect("u64")
     }
+
+    pub fn borrow(&self, i: u64) -> &'mv AnyValue {
+        unsafe {
+            let i = usize::try_from(i).expect("usize");
+            let value = match self {
+                TypedMoveBorrowedRustVec::Bool(v) => mem::transmute(&v[i]),
+                TypedMoveBorrowedRustVec::U8(v) => mem::transmute(&v[i]),
+                TypedMoveBorrowedRustVec::U16(v) => mem::transmute(&v[i]),
+                TypedMoveBorrowedRustVec::U32(v) => mem::transmute(&v[i]),
+                TypedMoveBorrowedRustVec::U64(v) => mem::transmute(&v[i]),
+                TypedMoveBorrowedRustVec::U128(v) => mem::transmute(&v[i]),
+                TypedMoveBorrowedRustVec::U256(v) => mem::transmute(&v[i]),
+                TypedMoveBorrowedRustVec::Address(v) => mem::transmute(&v[i]),
+                TypedMoveBorrowedRustVec::Signer(v) => mem::transmute(&v[i]),
+                TypedMoveBorrowedRustVec::Vector(_t, v) => mem::transmute(&v[i]),
+                TypedMoveBorrowedRustVec::Struct(s) => s.get(i),
+                TypedMoveBorrowedRustVec::Reference(_t, v) => mem::transmute(&v[i]),
+            };
+
+            value
+        }
+    }
 }
 
 pub unsafe fn length(type_ve: &MoveType, v: &MoveUntypedVector) -> u64 {
@@ -400,24 +422,7 @@ pub unsafe fn length(type_ve: &MoveType, v: &MoveUntypedVector) -> u64 {
 
 pub unsafe fn borrow<'v>(type_ve: &'v MoveType, v: &'v MoveUntypedVector, i: u64) -> &'v AnyValue {
     let rust_vec = TypedMoveBorrowedRustVec::new(type_ve, v);
-
-    let i = usize::try_from(i).expect("usize");
-    let value = match rust_vec {
-        TypedMoveBorrowedRustVec::Bool(v) => mem::transmute(&v[i]),
-        TypedMoveBorrowedRustVec::U8(v) => mem::transmute(&v[i]),
-        TypedMoveBorrowedRustVec::U16(v) => mem::transmute(&v[i]),
-        TypedMoveBorrowedRustVec::U32(v) => mem::transmute(&v[i]),
-        TypedMoveBorrowedRustVec::U64(v) => mem::transmute(&v[i]),
-        TypedMoveBorrowedRustVec::U128(v) => mem::transmute(&v[i]),
-        TypedMoveBorrowedRustVec::U256(v) => mem::transmute(&v[i]),
-        TypedMoveBorrowedRustVec::Address(v) => mem::transmute(&v[i]),
-        TypedMoveBorrowedRustVec::Signer(v) => mem::transmute(&v[i]),
-        TypedMoveBorrowedRustVec::Vector(_t, v) => mem::transmute(&v[i]),
-        TypedMoveBorrowedRustVec::Struct(s) => s.get(i),
-        TypedMoveBorrowedRustVec::Reference(_t, v) => mem::transmute(&v[i]),
-    };
-
-    value
+    rust_vec.borrow(i)
 }
 
 pub unsafe fn push_back(type_ve: &MoveType, v: &mut MoveUntypedVector, e: *mut AnyValue) {
