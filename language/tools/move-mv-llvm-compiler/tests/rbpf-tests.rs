@@ -447,8 +447,8 @@ fn run_rbpf(test_plan: &tc::TestPlan, exe: &Path) -> anyhow::Result<()> {
     );
     let mut vm = vm.unwrap();
 
-    let (instruction_count, result) = vm.execute_program(true);
-    eprintln!("ic {instruction_count}");
+    let (_instruction_count, result) = vm.execute_program(true);
+    eprintln!("ic {_instruction_count}");
 
     let result = Result::from(result);
 
