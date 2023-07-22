@@ -70,6 +70,8 @@ pub struct MoveBorrowedRustVecOfStructMut<'mv> {
 }
 
 impl<'mv> TypedMoveBorrowedRustVec<'mv> {
+    // Forced inlining dramatically reduces instruction counts on tests ¯\_(ツ)_/¯
+    #[inline(always)]
     pub unsafe fn new(
         type_: &'mv MoveType,
         mv: &'mv MoveUntypedVector,
@@ -104,6 +106,8 @@ impl<'mv> TypedMoveBorrowedRustVec<'mv> {
 }
 
 impl<'mv> TypedMoveBorrowedRustVecMut<'mv> {
+    // Forced inlining dramatically reduces instruction counts on tests ¯\_(ツ)_/¯
+    #[inline(always)]
     pub unsafe fn new(
         type_: &'mv MoveType,
         mv: &'mv mut MoveUntypedVector,
