@@ -425,11 +425,11 @@ pub unsafe fn push_back(type_ve: &MoveType, v: &mut MoveUntypedVector, e: *mut A
     }
 }
 
-pub unsafe fn borrow_mut<'v>(
-    type_ve: &'v MoveType,
-    v: &'v mut MoveUntypedVector,
+pub unsafe fn borrow_mut(
+    type_ve: &MoveType,
+    v: &mut MoveUntypedVector,
     i: u64,
-) -> &'v mut AnyValue {
+) -> *mut AnyValue {
     let rust_vec = TypedMoveBorrowedRustVecMut::new(type_ve, v);
 
     let i = usize::try_from(i).expect("usize");
