@@ -241,12 +241,7 @@ impl<'mv> core::fmt::Debug for TypedMoveBorrowedRustVec<'mv> {
                 f.write_str("[")?;
                 unsafe {
                     for vref in s.iter() {
-                        let type_ = MoveType {
-                            name: s.name,
-                            type_desc: TypeDesc::Struct,
-                            type_info: &TypeInfo { struct_: *s.type_ },
-                        };
-                        let e = borrow_move_value_as_rust_value(&type_, vref);
+                        let e = borrow_move_value_as_rust_value(s.type_(), vref);
                         e.fmt(f)?;
                         f.write_str(", ")?;
                     }

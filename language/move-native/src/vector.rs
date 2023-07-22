@@ -59,8 +59,8 @@ pub struct MoveBorrowedRustVecMut<'mv, T> {
 #[derive(Debug)]
 pub struct MoveBorrowedRustVecOfStruct<'mv> {
     inner: &'mv MoveUntypedVector,
-    pub name: StaticTypeName,
-    pub type_: &'mv StructTypeInfo,
+    type_: &'mv StructTypeInfo,
+    full_type: &'mv MoveType,
 }
 
 #[derive(Debug)]
@@ -221,22 +221,22 @@ impl<'mv, T> DerefMut for MoveBorrowedRustVecMut<'mv, T> {
 }
 
 impl<'mv> MoveBorrowedRustVecOfStruct<'mv> {
-    unsafe fn new(elt_ty: &'mv MoveType, mv: &'mv MoveUntypedVector) -> MoveBorrowedRustVecOfStruct<'mv> {
-        assert_eq!(elt_ty.type_desc, TypeDesc::Struct);
+    unsafe fn new(ty: &'mv MoveType, mv: &'mv MoveUntypedVector) -> MoveBorrowedRustVecOfStruct<'mv> {
+        assert_eq!(ty.type_desc, TypeDesc::Struct);
         MoveBorrowedRustVecOfStruct {
             inner: mv,
-            name: elt_ty.name,
-            type_: &(*elt_ty.type_info).struct_,
+            type_: &(*ty.type_info).struct_,
+            full_type: ty
         }
     }
 }
 
 impl<'mv> MoveBorrowedRustVecOfStructMut<'mv> {
-    unsafe fn new(elt_ty: &'mv MoveType, mv: &'mv mut MoveUntypedVector) -> MoveBorrowedRustVecOfStructMut<'mv> {
-        assert_eq!(elt_ty.type_desc, TypeDesc::Struct);
+    unsafe fn new(ty: &'mv MoveType, mv: &'mv mut MoveUntypedVector) -> MoveBorrowedRustVecOfStructMut<'mv> {
+        assert_eq!(ty.type_desc, TypeDesc::Struct);
         MoveBorrowedRustVecOfStructMut {
             inner: mv,
-            type_: &(*elt_ty.type_info).struct_,
+            type_: &(*ty.type_info).struct_,
         }
     }
 }
@@ -670,6 +670,10 @@ pub unsafe fn cmp_eq(type_ve: &MoveType, v1: &MoveUntypedVector, v2: &MoveUntype
 impl<'mv> MoveBorrowedRustVecOfStruct<'mv> {
     pub fn len(&self) -> usize {
         self.inner.length.try_into().expect("overflow")
+    }
+
+    pub fn type_(&self) -> &MoveType {
+        self.full_type
     }
 
     pub unsafe fn iter(&self) -> impl Iterator<Item = &AnyValue> {
