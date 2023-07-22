@@ -426,6 +426,25 @@ pub unsafe fn borrow<'v>(type_ve: &'v MoveType, v: &'v MoveUntypedVector, i: u64
 }
 
 impl<'mv> TypedMoveBorrowedRustVecMut<'mv> {
+    pub fn len(&self) -> u64 {
+        let len = match self {
+            TypedMoveBorrowedRustVecMut::Bool(v) => v.len(),
+            TypedMoveBorrowedRustVecMut::U8(v) => v.len(),
+            TypedMoveBorrowedRustVecMut::U16(v) => v.len(),
+            TypedMoveBorrowedRustVecMut::U32(v) => v.len(),
+            TypedMoveBorrowedRustVecMut::U64(v) => v.len(),
+            TypedMoveBorrowedRustVecMut::U128(v) => v.len(),
+            TypedMoveBorrowedRustVecMut::U256(v) => v.len(),
+            TypedMoveBorrowedRustVecMut::Address(v) => v.len(),
+            TypedMoveBorrowedRustVecMut::Signer(v) => v.len(),
+            TypedMoveBorrowedRustVecMut::Vector(_t, v) => v.len(),
+            TypedMoveBorrowedRustVecMut::Struct(s) => usize::try_from(s.inner.length).expect("overflow"),
+            TypedMoveBorrowedRustVecMut::Reference(_t, v) => v.len(),
+        };
+
+        u64::try_from(len).expect("u64")
+    }
+
     pub unsafe fn push_back(&mut self, e: *mut AnyValue) {
         match self {
             TypedMoveBorrowedRustVecMut::Bool(ref mut v) => v.push(ptr::read(e as *const bool)),
