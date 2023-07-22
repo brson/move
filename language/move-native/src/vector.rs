@@ -620,26 +620,23 @@ pub unsafe fn swap(type_ve: &MoveType, v: &mut MoveUntypedVector, i: u64, j: u64
 }
 
 pub unsafe fn copy(type_ve: &MoveType, dstv: &mut MoveUntypedVector, srcv: &MoveUntypedVector) {
-    let src_len = length(type_ve, srcv);
-    let dst_len = length(type_ve, dstv);
+    let srcv = TypedMoveBorrowedRustVec::new(type_ve, srcv);
+    let mut dstv = TypedMoveBorrowedRustVecMut::new(type_ve, dstv);
+    let src_len = srcv.len();
+    let dst_len = dstv.len();
 
     // Drain the destination first.
     for _ in 0..dst_len {
-        pop_back_discard(type_ve, dstv);
+        dstv.pop_back_discard();
     }
 
     // Now copy.
     for i in 0..src_len {
-        let se = borrow(type_ve, srcv, i);
+        let se = srcv.borrow(i);
         // fixme this is incorrect for vectors and structs containing vectors
         let septr = se as *const AnyValue as *mut AnyValue;
-        push_back(type_ve, dstv, septr);
+        dstv.push_back(septr);
     }
-}
-
-unsafe fn pop_back_discard(type_ve: &MoveType, v: &mut MoveUntypedVector) {
-    let mut rust_vec = TypedMoveBorrowedRustVecMut::new(type_ve, v);
-    rust_vec.pop_back_discard()
 }
 
 pub unsafe fn cmp_eq(type_ve: &MoveType, v1: &MoveUntypedVector, v2: &MoveUntypedVector) -> bool {
