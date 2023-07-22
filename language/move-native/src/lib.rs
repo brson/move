@@ -155,7 +155,7 @@
 //! contains recursive `&'static` references to other `MoveType`s, necessitating
 //! that binaries contain a static table of all needed type descriptors.
 //!
-//! Generic values are represented by references or pointers to [`AnyType`],
+//! Generic values are represented by references or pointers to [`AnyValue`],
 //! which is simply a transparent wrapper around a u8, pointers to which must
 //! be unsafely cast based on an accompanying `MoveType`.
 //!
@@ -209,13 +209,16 @@
 //!
 //! - type parameters
 //!   - passed as `&MoveType`
-//! - by-ref generic types
-//!   - passed by `&AnyType`
+//! - by-ref immutable generic types
+//!   - passed by `&AnyValue`
+//! - by-ref mutable generic types
+//!   - passed by `*mut AnyValue`
+//!   - writing to this incorrectly may produce unsoundness
 //! - by-value generic types
-//!   - passed by `*mut AnyType`
+//!   - passed by `*mut AnyValue`
 //!   - examples: `write_to_event_store`
 //! - by-value generic return types
-//!   - stack-allocated return pointer of `*mut AnyType`
+//!   - stack-allocated return pointer of `*mut AnyValue`
 //!   - examples: `pop_back`
 //!
 //!
