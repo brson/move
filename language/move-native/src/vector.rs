@@ -425,27 +425,32 @@ pub unsafe fn borrow<'v>(type_ve: &'v MoveType, v: &'v MoveUntypedVector, i: u64
     rust_vec.borrow(i)
 }
 
-pub unsafe fn push_back(type_ve: &MoveType, v: &mut MoveUntypedVector, e: *mut AnyValue) {
-    let rust_vec = TypedMoveBorrowedRustVecMut::new(type_ve, v);
-
-    match rust_vec {
-        TypedMoveBorrowedRustVecMut::Bool(mut v) => v.push(ptr::read(e as *const bool)),
-        TypedMoveBorrowedRustVecMut::U8(mut v) => v.push(ptr::read(e as *const u8)),
-        TypedMoveBorrowedRustVecMut::U16(mut v) => v.push(ptr::read(e as *const u16)),
-        TypedMoveBorrowedRustVecMut::U32(mut v) => v.push(ptr::read(e as *const u32)),
-        TypedMoveBorrowedRustVecMut::U64(mut v) => v.push(ptr::read(e as *const u64)),
-        TypedMoveBorrowedRustVecMut::U128(mut v) => v.push(ptr::read(e as *const u128)),
-        TypedMoveBorrowedRustVecMut::U256(mut v) => v.push(ptr::read(e as *const U256)),
-        TypedMoveBorrowedRustVecMut::Address(mut v) => v.push(ptr::read(e as *const MoveAddress)),
-        TypedMoveBorrowedRustVecMut::Signer(mut v) => v.push(ptr::read(e as *const MoveSigner)),
-        TypedMoveBorrowedRustVecMut::Vector(_t, mut v) => {
-            v.push(ptr::read(e as *const MoveUntypedVector))
-        }
-        TypedMoveBorrowedRustVecMut::Struct(mut s) => s.push(e),
-        TypedMoveBorrowedRustVecMut::Reference(_t, mut v) => {
-            v.push(ptr::read(e as *const MoveUntypedReference))
+impl<'mv> TypedMoveBorrowedRustVecMut<'mv> {
+    pub unsafe fn push_back(&mut self, e: *mut AnyValue) {
+        match self {
+            TypedMoveBorrowedRustVecMut::Bool(ref mut v) => v.push(ptr::read(e as *const bool)),
+            TypedMoveBorrowedRustVecMut::U8(ref mut v) => v.push(ptr::read(e as *const u8)),
+            TypedMoveBorrowedRustVecMut::U16(ref mut v) => v.push(ptr::read(e as *const u16)),
+            TypedMoveBorrowedRustVecMut::U32(ref mut v) => v.push(ptr::read(e as *const u32)),
+            TypedMoveBorrowedRustVecMut::U64(ref mut v) => v.push(ptr::read(e as *const u64)),
+            TypedMoveBorrowedRustVecMut::U128(ref mut v) => v.push(ptr::read(e as *const u128)),
+            TypedMoveBorrowedRustVecMut::U256(ref mut v) => v.push(ptr::read(e as *const U256)),
+            TypedMoveBorrowedRustVecMut::Address(ref mut v) => v.push(ptr::read(e as *const MoveAddress)),
+            TypedMoveBorrowedRustVecMut::Signer(ref mut v) => v.push(ptr::read(e as *const MoveSigner)),
+            TypedMoveBorrowedRustVecMut::Vector(_t, ref mut v) => {
+                v.push(ptr::read(e as *const MoveUntypedVector))
+            }
+            TypedMoveBorrowedRustVecMut::Struct(ref mut s) => s.push(e),
+            TypedMoveBorrowedRustVecMut::Reference(_t, ref mut v) => {
+                v.push(ptr::read(e as *const MoveUntypedReference))
+            }
         }
     }
+}
+
+pub unsafe fn push_back(type_ve: &MoveType, v: &mut MoveUntypedVector, e: *mut AnyValue) {
+    let mut rust_vec = TypedMoveBorrowedRustVecMut::new(type_ve, v);
+    rust_vec.push_back(e)
 }
 
 pub unsafe fn borrow_mut(
