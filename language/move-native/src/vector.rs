@@ -593,6 +593,25 @@ impl<'mv> TypedMoveBorrowedRustVecMut<'mv> {
             }
         };
     }
+
+    // Safety: src must have same type.
+    pub unsafe fn copy_from(&mut self, srcv: &TypedMoveBorrowedRustVec) {
+        let src_len = srcv.len();
+        let dst_len = self.len();
+
+        // Drain the destination first.
+        for _ in 0..dst_len {
+            self.pop_back_discard();
+        }
+
+        // Now copy.
+        for i in 0..src_len {
+            let se = srcv.borrow(i);
+            // fixme this is incorrect for vectors and structs containing vectors
+            let septr = se as *const AnyValue as *mut AnyValue;
+            self.push_back(septr);
+        }
+    }
 }
 
 pub unsafe fn push_back(type_ve: &MoveType, v: &mut MoveUntypedVector, e: *mut AnyValue) {
@@ -622,21 +641,7 @@ pub unsafe fn swap(type_ve: &MoveType, v: &mut MoveUntypedVector, i: u64, j: u64
 pub unsafe fn copy(type_ve: &MoveType, dstv: &mut MoveUntypedVector, srcv: &MoveUntypedVector) {
     let srcv = TypedMoveBorrowedRustVec::new(type_ve, srcv);
     let mut dstv = TypedMoveBorrowedRustVecMut::new(type_ve, dstv);
-    let src_len = srcv.len();
-    let dst_len = dstv.len();
-
-    // Drain the destination first.
-    for _ in 0..dst_len {
-        dstv.pop_back_discard();
-    }
-
-    // Now copy.
-    for i in 0..src_len {
-        let se = srcv.borrow(i);
-        // fixme this is incorrect for vectors and structs containing vectors
-        let septr = se as *const AnyValue as *mut AnyValue;
-        dstv.push_back(septr);
-    }
+    dstv.copy_from(&srcv)
 }
 
 pub unsafe fn cmp_eq(type_ve: &MoveType, v1: &MoveUntypedVector, v2: &MoveUntypedVector) -> bool {
