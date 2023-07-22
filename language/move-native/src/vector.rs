@@ -372,27 +372,30 @@ pub unsafe fn destroy_empty(type_ve: &MoveType, v: MoveUntypedVector) {
     }
 }
 
+impl<'mv> TypedMoveBorrowedRustVec<'mv> {
+    pub fn len(&self) -> u64 {
+        let len = match self {
+            TypedMoveBorrowedRustVec::Bool(v) => v.len(),
+            TypedMoveBorrowedRustVec::U8(v) => v.len(),
+            TypedMoveBorrowedRustVec::U16(v) => v.len(),
+            TypedMoveBorrowedRustVec::U32(v) => v.len(),
+            TypedMoveBorrowedRustVec::U64(v) => v.len(),
+            TypedMoveBorrowedRustVec::U128(v) => v.len(),
+            TypedMoveBorrowedRustVec::U256(v) => v.len(),
+            TypedMoveBorrowedRustVec::Address(v) => v.len(),
+            TypedMoveBorrowedRustVec::Signer(v) => v.len(),
+            TypedMoveBorrowedRustVec::Vector(_t, v) => v.len(),
+            TypedMoveBorrowedRustVec::Struct(s) => usize::try_from(s.inner.length).expect("overflow"),
+            TypedMoveBorrowedRustVec::Reference(_t, v) => v.len(),
+        };
+
+        u64::try_from(len).expect("u64")
+    }
+}
+
 pub unsafe fn length(type_ve: &MoveType, v: &MoveUntypedVector) -> u64 {
-    // It is not strictly necessary to convert the vec for this op.
-    // Doing it for consistency.
     let rust_vec = TypedMoveBorrowedRustVec::new(type_ve, v);
-
-    let len = match rust_vec {
-        TypedMoveBorrowedRustVec::Bool(v) => v.len(),
-        TypedMoveBorrowedRustVec::U8(v) => v.len(),
-        TypedMoveBorrowedRustVec::U16(v) => v.len(),
-        TypedMoveBorrowedRustVec::U32(v) => v.len(),
-        TypedMoveBorrowedRustVec::U64(v) => v.len(),
-        TypedMoveBorrowedRustVec::U128(v) => v.len(),
-        TypedMoveBorrowedRustVec::U256(v) => v.len(),
-        TypedMoveBorrowedRustVec::Address(v) => v.len(),
-        TypedMoveBorrowedRustVec::Signer(v) => v.len(),
-        TypedMoveBorrowedRustVec::Vector(_t, v) => v.len(),
-        TypedMoveBorrowedRustVec::Struct(s) => usize::try_from(s.inner.length).expect("overflow"),
-        TypedMoveBorrowedRustVec::Reference(_t, v) => v.len(),
-    };
-
-    u64::try_from(len).expect("u64")
+    rust_vec.len()
 }
 
 pub unsafe fn borrow<'v>(type_ve: &'v MoveType, v: &'v MoveUntypedVector, i: u64) -> &'v AnyValue {
