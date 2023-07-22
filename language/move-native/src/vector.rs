@@ -538,6 +538,7 @@ pub unsafe fn copy(type_ve: &MoveType, dstv: &mut MoveUntypedVector, srcv: &Move
     // Now copy.
     for i in 0..src_len {
         let se = borrow(type_ve, srcv, i);
+        // fixme this is incorrect for vectors and structs containing vectors
         let septr = se as *const AnyValue as *mut AnyValue;
         push_back(type_ve, dstv, septr);
     }
@@ -576,6 +577,7 @@ unsafe fn pop_back_discard(type_ve: &MoveType, v: &mut MoveUntypedVector) {
             v.pop().expect(msg);
         }
         TypedMoveBorrowedRustVecMut::Vector(_t, mut v) => {
+            // fixme this looks like it leaks the vector elements
             v.pop().expect(msg);
         }
         TypedMoveBorrowedRustVecMut::Struct(mut _v) => {
