@@ -654,55 +654,41 @@ pub unsafe fn cmp_eq(type_ve: &MoveType, v1: &MoveUntypedVector, v2: &MoveUntype
         return false;
     }
 
-    let is_eq = match type_ve.type_desc {
-        TypeDesc::Bool => {
-            let rv1 = MoveBorrowedRustVec::<bool>::new(v1);
-            let rv2 = MoveBorrowedRustVec::<bool>::new(v2);
+    use TypedMoveBorrowedRustVec as V;
+    let is_eq = match (v1t, v2t) {
+        (V::Bool(rv1), V::Bool(rv2)) => {
             rv1.deref().eq(rv2.deref())
         }
-        TypeDesc::U8 => {
-            let rv1 = MoveBorrowedRustVec::<u8>::new(v1);
-            let rv2 = MoveBorrowedRustVec::<u8>::new(v2);
+        (V::U8(rv1), V::U8(rv2)) => {
             rv1.deref().eq(rv2.deref())
         }
-        TypeDesc::U16 => {
-            let rv1 = MoveBorrowedRustVec::<u16>::new(v1);
-            let rv2 = MoveBorrowedRustVec::<u16>::new(v2);
+        (V::U16(rv1), V::U16(rv2)) => {
             rv1.deref().eq(rv2.deref())
         }
-        TypeDesc::U32 => {
-            let rv1 = MoveBorrowedRustVec::<u32>::new(v1);
-            let rv2 = MoveBorrowedRustVec::<u32>::new(v2);
+        (V::U32(rv1), V::U32(rv2)) => {
             rv1.deref().eq(rv2.deref())
         }
-        TypeDesc::U64 => {
-            let rv1 = MoveBorrowedRustVec::<u64>::new(v1);
-            let rv2 = MoveBorrowedRustVec::<u64>::new(v2);
+        (V::U64(rv1), V::U64(rv2)) => {
             rv1.deref().eq(rv2.deref())
         }
-        TypeDesc::U128 => {
-            let rv1 = MoveBorrowedRustVec::<u128>::new(v1);
-            let rv2 = MoveBorrowedRustVec::<u128>::new(v2);
+        (V::U128(rv1), V::U128(rv2)) => {
             rv1.deref().eq(rv2.deref())
         }
-        TypeDesc::U256 => {
-            let rv1 = MoveBorrowedRustVec::<U256>::new(v1);
-            let rv2 = MoveBorrowedRustVec::<U256>::new(v2);
+        (V::U256(rv1), V::U256(rv2)) => {
             rv1.deref().eq(rv2.deref())
         }
-        TypeDesc::Address => {
-            let rv1 = MoveBorrowedRustVec::<MoveAddress>::new(v1);
-            let rv2 = MoveBorrowedRustVec::<MoveAddress>::new(v2);
+        (V::Address(rv1), V::Address(rv2)) => {
             rv1.deref().eq(rv2.deref())
         }
-        TypeDesc::Signer => {
-            let rv1 = MoveBorrowedRustVec::<MoveSigner>::new(v1);
-            let rv2 = MoveBorrowedRustVec::<MoveSigner>::new(v2);
+        (V::Signer(rv1), V::Signer(rv2)) => {
             rv1.deref().eq(rv2.deref())
         }
-        TypeDesc::Vector => {
+        (V::Vector(elt_t1, mv1), V::Vector(elt_t2, mv2)) => {
+            let v1t = V::Vector(elt_t1, mv1);
+            let v2t = V::Vector(elt_t2, mv2);
+            assert_eq!(elt_t1.type_desc, elt_t2.type_desc);
             assert!(v1_len == v2_len, "unexpected vec cmp lengths");
-            let inner_element_type = *(*type_ve.type_info).vector.element_type;
+            let inner_element_type = elt_t1;
             let mut tmp_result = true;
             for i in 0..v1_len {
                 let anyval_ref1 = v1t.borrow(i);
@@ -716,12 +702,12 @@ pub unsafe fn cmp_eq(type_ve: &MoveType, v1: &MoveUntypedVector, v2: &MoveUntype
             }
             tmp_result
         }
-        TypeDesc::Struct => {
+        (V::Struct(v1t), V::Struct(v2t)) => {
             assert!(v1_len == v2_len, "unexpected vec cmp lengths");
             let mut tmp_result = true;
             for i in 0..v1_len {
-                let anyval_ref1 = v1t.borrow(i);
-                let anyval_ref2 = v2t.borrow(i);
+                let anyval_ref1 = v1t.get(i as usize);
+                let anyval_ref2 = v2t.get(i as usize);
                 tmp_result = crate::structs::cmp_eq(type_ve, anyval_ref1, anyval_ref2);
                 if !tmp_result {
                     break;
