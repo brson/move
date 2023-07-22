@@ -434,7 +434,32 @@ pub unsafe fn swap(type_ve: &MoveType, v: &mut MoveUntypedVector, i: u64, j: u64
     rust_vec.swap(i, j)
 }
 
+pub unsafe fn copy(type_ve: &MoveType, dstv: &mut MoveUntypedVector, srcv: &MoveUntypedVector) {
+    let src = TypedMoveBorrowedRustVec::new(type_ve, srcv);
+    let mut dst = TypedMoveBorrowedRustVecMut::new(type_ve, dstv);
+    dst.copy_from(&src)
+}
+
 impl<'mv> TypedMoveBorrowedRustVecMut<'mv> {
+    pub fn len(&self) -> u64 {
+        let len = match self {
+            TypedMoveBorrowedRustVecMut::Bool(v) => v.len(),
+            TypedMoveBorrowedRustVecMut::U8(v) => v.len(),
+            TypedMoveBorrowedRustVecMut::U16(v) => v.len(),
+            TypedMoveBorrowedRustVecMut::U32(v) => v.len(),
+            TypedMoveBorrowedRustVecMut::U64(v) => v.len(),
+            TypedMoveBorrowedRustVecMut::U128(v) => v.len(),
+            TypedMoveBorrowedRustVecMut::U256(v) => v.len(),
+            TypedMoveBorrowedRustVecMut::Address(v) => v.len(),
+            TypedMoveBorrowedRustVecMut::Signer(v) => v.len(),
+            TypedMoveBorrowedRustVecMut::Vector(_t, v) => v.len(),
+            TypedMoveBorrowedRustVecMut::Struct(s) => s.len(),
+            TypedMoveBorrowedRustVecMut::Reference(_t, v) => v.len(),
+        };
+
+        u64::try_from(len).expect("u64")
+    }
+
     pub unsafe fn push_back(&mut self, e: *mut AnyValue) {
         match self {
             TypedMoveBorrowedRustVecMut::Bool(ref mut v) => v.push(ptr::read(e as *const bool)),
@@ -540,6 +565,25 @@ impl<'mv> TypedMoveBorrowedRustVecMut<'mv> {
         }
     }
 
+    // Safety: self and srcv must be vecs of the same type
+    pub unsafe fn copy_from(&mut self, srcv: &TypedMoveBorrowedRustVec) {
+        let src_len = srcv.len();
+        let dst_len = self.len();
+
+        // Drain the destination first.
+        for _ in 0..dst_len {
+            self.pop_back_discard();
+        }
+
+        // Now copy.
+        for i in 0..src_len {
+            let se = srcv.borrow(i);
+            // fixme this is incorrect for vectors and structs with vec fields
+            let septr = se as *const AnyValue as *mut AnyValue;
+            self.push_back(septr);
+        }
+    }
+
     fn pop_back_discard(&mut self) {
         let msg = "popping from empty vec";
         match self {
@@ -571,6 +615,7 @@ impl<'mv> TypedMoveBorrowedRustVecMut<'mv> {
                 v.pop().expect(msg);
             }
             TypedMoveBorrowedRustVecMut::Vector(_t, ref mut v) => {
+                // fixme this looks like it leaks the element
                 v.pop().expect(msg);
             }
             TypedMoveBorrowedRustVecMut::Struct(ref mut _v) => {
@@ -581,29 +626,6 @@ impl<'mv> TypedMoveBorrowedRustVecMut<'mv> {
             }
         };
     }
-}
-
-pub unsafe fn copy(type_ve: &MoveType, dstv: &mut MoveUntypedVector, srcv: &MoveUntypedVector) {
-    let src_len = length(type_ve, srcv);
-    let dst_len = length(type_ve, dstv);
-
-    // Drain the destination first.
-    for _ in 0..dst_len {
-        pop_back_discard(type_ve, dstv);
-    }
-
-    // Now copy.
-    for i in 0..src_len {
-        let se = borrow(type_ve, srcv, i);
-        // fixme this is incorrect for vectors and structs with vec fields
-        let septr = se as *const AnyValue as *mut AnyValue;
-        push_back(type_ve, dstv, septr);
-    }
-}
-
-unsafe fn pop_back_discard(type_ve: &MoveType, v: &mut MoveUntypedVector) {
-    let mut rust_vec = TypedMoveBorrowedRustVecMut::new(type_ve, v);
-    rust_vec.pop_back_discard()
 }
 
 pub unsafe fn cmp_eq(type_ve: &MoveType, v1: &MoveUntypedVector, v2: &MoveUntypedVector) -> bool {
@@ -735,6 +757,10 @@ impl<'mv> MoveBorrowedRustVecOfStruct<'mv> {
 }
 
 impl<'mv> MoveBorrowedRustVecOfStructMut<'mv> {
+    pub fn len(&self) -> usize {
+        self.inner.length.try_into().expect("overflow")
+    }
+
     pub unsafe fn get_mut(&mut self, i: usize) -> &'mv mut AnyValue {
         let struct_size = usize::try_from(self.type_.size).expect("overflow");
         let vec_len = usize::try_from(self.inner.length).expect("overflow");

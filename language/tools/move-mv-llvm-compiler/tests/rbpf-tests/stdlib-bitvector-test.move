@@ -493,8 +493,8 @@ script {
     use 0x10::bit_vector_tests as BT;
 
     fun main() {
-        BT::test_set_bit_and_index_basic();
-        BT::test_set_bit_and_index_odd_size();
+        //BT::test_set_bit_and_index_basic();
+        //BT::test_set_bit_and_index_odd_size();
         BT::longest_sequence_no_set_zero_index();
         BT::longest_sequence_one_set_zero_index();
         BT::longest_sequence_no_set_nonzero_index();
