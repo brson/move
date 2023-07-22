@@ -77,7 +77,7 @@ fn test_vec_with_bool() {
         type_info: &TypeInfo { nothing: 0 },
     };
 
-    let mut move_vec = vector::empty(&ELEMENT_TYPE);
+    let mut move_vec = unsafe { vector::empty(&ELEMENT_TYPE) };
     assert_eq!(move_vec.length, 0);
     assert_eq!(move_vec.capacity, 0);
 
@@ -199,7 +199,7 @@ fn test_vec_with_signer() {
         type_info: &TypeInfo { nothing: 0 },
     };
 
-    let mut move_vec = vector::empty(&ELEMENT_TYPE);
+    let mut move_vec = unsafe { vector::empty(&ELEMENT_TYPE) };
     assert_eq!(move_vec.length, 0);
     assert_eq!(move_vec.capacity, 0);
 
@@ -270,7 +270,7 @@ fn test_vec_with_struct() {
         },
     };
 
-    let mut move_vec = vector::empty(&ELEMENT_TYPE);
+    let mut move_vec = unsafe { vector::empty(&ELEMENT_TYPE) };
     assert_eq!(move_vec.length, 0);
     assert_eq!(move_vec.capacity, 0);
 

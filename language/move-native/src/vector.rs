@@ -256,7 +256,7 @@ impl<'mv> MoveBorrowedRustVecOfStructMut<'mv> {
     }
 }
 
-pub fn empty(type_r: &MoveType) -> MoveUntypedVector {
+pub unsafe fn empty(type_r: &MoveType) -> MoveUntypedVector {
     match type_r.type_desc {
         TypeDesc::Bool => rust_vec_to_move_vec::<bool>(Vec::new()),
         TypeDesc::U8 => rust_vec_to_move_vec::<u8>(Vec::new()),

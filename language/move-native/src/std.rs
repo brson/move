@@ -198,7 +198,7 @@ mod vector {
     // which must be correctly aligned. This function crates empty Rust vecs
     // of the correct type and converts them to untyped move vecs.
     #[export_name = "move_native_vector_empty"]
-    extern "C" fn empty(type_r: &MoveType) -> MoveUntypedVector {
+    unsafe extern "C" fn empty(type_r: &MoveType) -> MoveUntypedVector {
         crate::vector::empty(type_r)
     }
 
