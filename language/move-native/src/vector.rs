@@ -436,11 +436,11 @@ pub unsafe fn push_back(type_ve: &MoveType, v: &mut MoveUntypedVector, e: *mut A
     }
 }
 
-pub unsafe fn borrow_mut<'v>(
-    type_ve: &'v MoveType,
-    v: &'v mut MoveUntypedVector,
+pub unsafe fn borrow_mut(
+    type_ve: &MoveType,
+    v: &mut MoveUntypedVector,
     i: u64,
-) -> &'v mut AnyValue {
+) -> *mut AnyValue {
     let rust_vec = TypedMoveBorrowedRustVecMut::new(type_ve, v);
 
     let i = usize::try_from(i).expect("usize");
@@ -716,7 +716,7 @@ impl<'mv> MoveBorrowedRustVecOfStruct<'mv> {
 }
 
 impl<'mv> MoveBorrowedRustVecOfStructMut<'mv> {
-    pub unsafe fn get_mut(&mut self, i: usize) -> &'mv mut AnyValue {
+    pub unsafe fn get_mut(&mut self, i: usize) -> *mut AnyValue {
         let struct_size = usize::try_from(self.type_.size).expect("overflow");
         let vec_len = usize::try_from(self.inner.length).expect("overflow");
 
@@ -728,7 +728,7 @@ impl<'mv> MoveBorrowedRustVecOfStructMut<'mv> {
         let offset = i.checked_mul(struct_size).expect("overflow");
         let offset = isize::try_from(offset).expect("overflow");
         let element_ptr = base_ptr.offset(offset);
-        &mut *(element_ptr as *mut AnyValue)
+        element_ptr as *mut AnyValue
     }
 
     /// Get a pointer to a possibly-uninitialized element.

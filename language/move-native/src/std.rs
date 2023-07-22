@@ -230,7 +230,7 @@ mod vector {
         type_ve: &'v MoveType,
         v: &'v mut MoveUntypedVector,
         i: u64,
-    ) -> &'v mut AnyValue {
+    ) -> *mut AnyValue {
         crate::vector::borrow_mut(type_ve, v, i)
     }
 
