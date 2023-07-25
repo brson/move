@@ -411,6 +411,83 @@ impl<'mv> TypedMoveBorrowedRustVec<'mv> {
             value
         }
     }
+
+    /// # Safety
+    ///
+    /// Unsafe because the struct path doesn't do necessary assertions on field types.
+    pub unsafe fn cmp_eq(&self, v2: &TypedMoveBorrowedRustVec) -> bool {
+        let v1t = self;
+        let v2t = v2;
+        let v1_len = v1t.len();
+        let v2_len = v2t.len();
+
+        if v1_len != v2_len {
+            return false;
+        }
+
+        use TypedMoveBorrowedRustVec as V;
+        let is_eq = match (v1t, v2t) {
+            (V::Bool(rv1), V::Bool(rv2)) => {
+                rv1.deref().eq(rv2.deref())
+            }
+            (V::U8(rv1), V::U8(rv2)) => {
+                rv1.deref().eq(rv2.deref())
+            }
+            (V::U16(rv1), V::U16(rv2)) => {
+                rv1.deref().eq(rv2.deref())
+            }
+            (V::U32(rv1), V::U32(rv2)) => {
+                rv1.deref().eq(rv2.deref())
+            }
+            (V::U64(rv1), V::U64(rv2)) => {
+                rv1.deref().eq(rv2.deref())
+            }
+            (V::U128(rv1), V::U128(rv2)) => {
+                rv1.deref().eq(rv2.deref())
+            }
+            (V::U256(rv1), V::U256(rv2)) => {
+                rv1.deref().eq(rv2.deref())
+            }
+            (V::Address(rv1), V::Address(rv2)) => {
+                rv1.deref().eq(rv2.deref())
+            }
+            (V::Signer(rv1), V::Signer(rv2)) => {
+                rv1.deref().eq(rv2.deref())
+            }
+            (v1t @ V::Vector(elt_t1, _mv1), v2t @ V::Vector(elt_t2, _mv2)) => {
+                assert_eq!(elt_t1.type_desc, elt_t2.type_desc);
+                assert!(v1_len == v2_len, "unexpected vec cmp lengths");
+                let inner_element_type = elt_t1;
+                let mut tmp_result = true;
+                for i in 0..v1_len {
+                    let anyval_ref1 = v1t.borrow(i);
+                    let anyval_ref2 = v2t.borrow(i);
+                    let mv_ut_vec1 = &*(anyval_ref1 as *const AnyValue as *const MoveUntypedVector);
+                    let mv_ut_vec2 = &*(anyval_ref2 as *const AnyValue as *const MoveUntypedVector);
+                    tmp_result = cmp_eq(&inner_element_type, mv_ut_vec1, mv_ut_vec2);
+                    if !tmp_result {
+                        break;
+                    }
+                }
+                tmp_result
+            }
+            (V::Struct(v1t), V::Struct(v2t)) => {
+                assert!(v1_len == v2_len, "unexpected vec cmp lengths");
+                let mut tmp_result = true;
+                for i in 0..v1_len {
+                    let anyval_ref1 = v1t.get(i as usize);
+                    let anyval_ref2 = v2t.get(i as usize);
+                    tmp_result = crate::structs::cmp_eq(v1t.full_type, anyval_ref1, anyval_ref2);
+                    if !tmp_result {
+                        break;
+                    }
+                }
+                tmp_result
+            }
+            _ => todo!("vec_cmp_eq: unhandled element type"),
+        };
+        is_eq
+    }
 }
 
 pub unsafe fn length(type_ve: &MoveType, v: &MoveUntypedVector) -> u64 {
@@ -645,80 +722,7 @@ pub unsafe fn copy(type_ve: &MoveType, dstv: &mut MoveUntypedVector, srcv: &Move
 pub unsafe fn cmp_eq(type_ve: &MoveType, v1: &MoveUntypedVector, v2: &MoveUntypedVector) -> bool {
     let v1t = TypedMoveBorrowedRustVec::new(type_ve, v1);
     let v2t = TypedMoveBorrowedRustVec::new(type_ve, v2);
-    let v1_len = v1t.len();
-    let v2_len = v2t.len();
-
-    if v1_len != v2_len {
-        return false;
-    }
-
-    use TypedMoveBorrowedRustVec as V;
-    let is_eq = match (v1t, v2t) {
-        (V::Bool(rv1), V::Bool(rv2)) => {
-            rv1.deref().eq(rv2.deref())
-        }
-        (V::U8(rv1), V::U8(rv2)) => {
-            rv1.deref().eq(rv2.deref())
-        }
-        (V::U16(rv1), V::U16(rv2)) => {
-            rv1.deref().eq(rv2.deref())
-        }
-        (V::U32(rv1), V::U32(rv2)) => {
-            rv1.deref().eq(rv2.deref())
-        }
-        (V::U64(rv1), V::U64(rv2)) => {
-            rv1.deref().eq(rv2.deref())
-        }
-        (V::U128(rv1), V::U128(rv2)) => {
-            rv1.deref().eq(rv2.deref())
-        }
-        (V::U256(rv1), V::U256(rv2)) => {
-            rv1.deref().eq(rv2.deref())
-        }
-        (V::Address(rv1), V::Address(rv2)) => {
-            rv1.deref().eq(rv2.deref())
-        }
-        (V::Signer(rv1), V::Signer(rv2)) => {
-            rv1.deref().eq(rv2.deref())
-        }
-        (V::Vector(elt_t1, mv1), V::Vector(elt_t2, mv2)) => {
-            let v1t = V::Vector(elt_t1, mv1);
-            let v2t = V::Vector(elt_t2, mv2);
-            assert_eq!(elt_t1.type_desc, elt_t2.type_desc);
-            assert!(v1_len == v2_len, "unexpected vec cmp lengths");
-            let inner_element_type = elt_t1;
-            let mut tmp_result = true;
-            for i in 0..v1_len {
-                let anyval_ref1 = v1t.borrow(i);
-                let anyval_ref2 = v2t.borrow(i);
-                let mv_ut_vec1 = &*(anyval_ref1 as *const AnyValue as *const MoveUntypedVector);
-                let mv_ut_vec2 = &*(anyval_ref2 as *const AnyValue as *const MoveUntypedVector);
-                tmp_result = cmp_eq(&inner_element_type, mv_ut_vec1, mv_ut_vec2);
-                if !tmp_result {
-                    break;
-                }
-            }
-            tmp_result
-        }
-        (V::Struct(v1t), V::Struct(v2t)) => {
-            assert!(v1_len == v2_len, "unexpected vec cmp lengths");
-            let mut tmp_result = true;
-            for i in 0..v1_len {
-                let anyval_ref1 = v1t.get(i as usize);
-                let anyval_ref2 = v2t.get(i as usize);
-                tmp_result = crate::structs::cmp_eq(type_ve, anyval_ref1, anyval_ref2);
-                if !tmp_result {
-                    break;
-                }
-            }
-            tmp_result
-        }
-        _ => todo!(
-            "vec_cmp_eq: unhandled element type: {:?}",
-            type_ve.type_desc
-        ),
-    };
-    is_eq
+    v1t.cmp_eq(&v2t)
 }
 
 impl<'mv> MoveBorrowedRustVecOfStruct<'mv> {
