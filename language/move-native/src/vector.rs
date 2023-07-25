@@ -254,120 +254,137 @@ impl<'mv> MoveBorrowedRustVecOfStructMut<'mv> {
     }
 }
 
-pub unsafe fn empty(type_r: &MoveType) -> MoveUntypedVector {
-    match type_r.type_desc {
-        TypeDesc::Bool => rust_vec_to_move_vec::<bool>(Vec::new()),
-        TypeDesc::U8 => rust_vec_to_move_vec::<u8>(Vec::new()),
-        TypeDesc::U16 => rust_vec_to_move_vec::<u16>(Vec::new()),
-        TypeDesc::U32 => rust_vec_to_move_vec::<u32>(Vec::new()),
-        TypeDesc::U64 => rust_vec_to_move_vec::<u64>(Vec::new()),
-        TypeDesc::U128 => rust_vec_to_move_vec::<u128>(Vec::new()),
-        TypeDesc::U256 => rust_vec_to_move_vec::<U256>(Vec::new()),
-        TypeDesc::Address => rust_vec_to_move_vec::<MoveAddress>(Vec::new()),
-        TypeDesc::Signer => rust_vec_to_move_vec::<MoveSigner>(Vec::new()),
-        TypeDesc::Vector => {
-            // Safety: need correct alignment for the internal vector
-            // pointer of the outer vector, which is non-null even for
-            // an unallocated vector. `MoveUntypedVector` has the same
-            // size and alignment regardless of the type it contains, so
-            // no need to interpret the vector type.
-            rust_vec_to_move_vec::<MoveUntypedVector>(Vec::new())
-        }
-        TypeDesc::Struct => unsafe {
-            // Safety: this gets pretty sketchy, and relies on internal
-            // Vec details that probably are not guaranteed. The most
-            // _correct_ way to initialize a Vec is to call its
-            // constructor.
-            //
-            // That is pretty tough with a type of any dynamically sized
-            // layout, so we're going to munge the pointers ourselves.
-            //
-            // The critical thing to know about Vec's pointers is:
-            //
-            // - They must always be aligned correctly
-            // - They are _never_ 0, even for empty Vec's, to allow null
-            //   pointer optimizations.
-            //
-            // Vec uses `NonNull::dangling` to create invalid non-null
-            // pointers, but that requires a concrete type of the
-            // correct alignment. We dig even deeper and use
-            // `ptr::invalid_mut`, which is an unstable function from
-            // the pointer provenance project. As it is unstable we just
-            // duplicate it in our `conv` module until it becomes
-            // stable.
-            //
-            // This should be the only location in this crate where we
-            // need to fabricate a pointer from an integer.
-            let size = (*type_r.type_info).struct_.size;
-            let size = usize::try_from(size).expect("overflow");
-            let alignment = (*type_r.type_info).struct_.alignment;
-            let alignment = usize::try_from(alignment).expect("overflow");
-
-            assert!(size != 0); // can't handle ZSTs
-            assert!(alignment != 0); // must have alignment
-            assert!(alignment.is_power_of_two());
-
-            let ptr = invalid_mut::<u8>(alignment);
-            MoveUntypedVector {
-                ptr,
-                capacity: 0,
-                length: 0,
+impl MoveUntypedVector {
+    /// # Safety
+    ///
+    /// Unsafe because `MoveType`'s fields are public.
+    pub unsafe fn empty(type_r: &MoveType) -> MoveUntypedVector {
+        match type_r.type_desc {
+            TypeDesc::Bool => rust_vec_to_move_vec::<bool>(Vec::new()),
+            TypeDesc::U8 => rust_vec_to_move_vec::<u8>(Vec::new()),
+            TypeDesc::U16 => rust_vec_to_move_vec::<u16>(Vec::new()),
+            TypeDesc::U32 => rust_vec_to_move_vec::<u32>(Vec::new()),
+            TypeDesc::U64 => rust_vec_to_move_vec::<u64>(Vec::new()),
+            TypeDesc::U128 => rust_vec_to_move_vec::<u128>(Vec::new()),
+            TypeDesc::U256 => rust_vec_to_move_vec::<U256>(Vec::new()),
+            TypeDesc::Address => rust_vec_to_move_vec::<MoveAddress>(Vec::new()),
+            TypeDesc::Signer => rust_vec_to_move_vec::<MoveSigner>(Vec::new()),
+            TypeDesc::Vector => {
+                // Safety: need correct alignment for the internal vector
+                // pointer of the outer vector, which is non-null even for
+                // an unallocated vector. `MoveUntypedVector` has the same
+                // size and alignment regardless of the type it contains, so
+                // no need to interpret the vector type.
+                rust_vec_to_move_vec::<MoveUntypedVector>(Vec::new())
             }
-        },
-        TypeDesc::Reference => rust_vec_to_move_vec::<MoveUntypedReference>(Vec::new()),
+            TypeDesc::Struct => unsafe {
+                // Safety: this gets pretty sketchy, and relies on internal
+                // Vec details that probably are not guaranteed. The most
+                // _correct_ way to initialize a Vec is to call its
+                // constructor.
+                //
+                // That is pretty tough with a type of any dynamically sized
+                // layout, so we're going to munge the pointers ourselves.
+                //
+                // The critical thing to know about Vec's pointers is:
+                //
+                // - They must always be aligned correctly
+                // - They are _never_ 0, even for empty Vec's, to allow null
+                //   pointer optimizations.
+                //
+                // Vec uses `NonNull::dangling` to create invalid non-null
+                // pointers, but that requires a concrete type of the
+                // correct alignment. We dig even deeper and use
+                // `ptr::invalid_mut`, which is an unstable function from
+                // the pointer provenance project. As it is unstable we just
+                // duplicate it in our `conv` module until it becomes
+                // stable.
+                //
+                // This should be the only location in this crate where we
+                // need to fabricate a pointer from an integer.
+                let size = (*type_r.type_info).struct_.size;
+                let size = usize::try_from(size).expect("overflow");
+                let alignment = (*type_r.type_info).struct_.alignment;
+                let alignment = usize::try_from(alignment).expect("overflow");
+
+                assert!(size != 0); // can't handle ZSTs
+                assert!(alignment != 0); // must have alignment
+                assert!(alignment.is_power_of_two());
+
+                let ptr = invalid_mut::<u8>(alignment);
+                MoveUntypedVector {
+                    ptr,
+                    capacity: 0,
+                    length: 0,
+                }
+            },
+            TypeDesc::Reference => rust_vec_to_move_vec::<MoveUntypedReference>(Vec::new()),
+        }
+    }
+
+    /// # Safety
+    ///
+    /// Unsafe because the provided type must be correct.
+    pub unsafe fn destroy_empty(self, type_ve: &MoveType) {
+        let v = self;
+        assert_eq!(v.length, 0);
+        match type_ve.type_desc {
+            TypeDesc::Bool => drop(move_vec_to_rust_vec::<bool>(v)),
+            TypeDesc::U8 => drop(move_vec_to_rust_vec::<u8>(v)),
+            TypeDesc::U16 => drop(move_vec_to_rust_vec::<u16>(v)),
+            TypeDesc::U32 => drop(move_vec_to_rust_vec::<u32>(v)),
+            TypeDesc::U64 => drop(move_vec_to_rust_vec::<u64>(v)),
+            TypeDesc::U128 => drop(move_vec_to_rust_vec::<u128>(v)),
+            TypeDesc::U256 => drop(move_vec_to_rust_vec::<U256>(v)),
+            TypeDesc::Address => drop(move_vec_to_rust_vec::<MoveAddress>(v)),
+            TypeDesc::Signer => drop(move_vec_to_rust_vec::<MoveSigner>(v)),
+            TypeDesc::Vector => {
+                // Safety: need the correct internal pointer alignment to
+                // deallocate; need the outer vector to be empty to avoid
+                // dropping the inner vectors. As in `empty`,
+                // MoveUntypedVector should have the same size/alignment
+                // regardless of the contained type, so no need to interpret
+                // the vector type.
+                drop(move_vec_to_rust_vec::<MoveUntypedVector>(v))
+            }
+            TypeDesc::Struct => {
+                // Safety: like in `empty` we want to deallocate here without
+                // creating a `Vec` of a concrete type, since handling the
+                // alignment would requiring enumerating many types.
+                //
+                // So here we're just going to free the pointer ourselves,
+                // constructing a correct `Layout` value to pass to the
+                // allocator.
+                //
+                // Note that this function can only be called on empty vecs,
+                // so we don't need to care about dropping elements.
+
+                let size = (*type_ve.type_info).struct_.size;
+                let size = usize::try_from(size).expect("overflow");
+                let alignment = (*type_ve.type_info).struct_.alignment;
+                let alignment = usize::try_from(alignment).expect("overflow");
+                let capacity = usize::try_from(v.capacity).expect("overflow");
+
+                assert!(size != 0); // can't handle ZSTs
+
+                if capacity != 0 {
+                    let vec_byte_size = capacity.checked_mul(size).expect("overflow");
+                    let layout = alloc::alloc::Layout::from_size_align(vec_byte_size, alignment)
+                        .expect("bad size or alignment");
+                    alloc::alloc::dealloc(v.ptr, layout);
+                }
+            }
+            TypeDesc::Reference => drop(move_vec_to_rust_vec::<MoveUntypedReference>(v)),
+        }
     }
 }
 
+pub unsafe fn empty(type_r: &MoveType) -> MoveUntypedVector {
+    MoveUntypedVector::empty(type_r)
+}
+
 pub unsafe fn destroy_empty(type_ve: &MoveType, v: MoveUntypedVector) {
-    assert_eq!(v.length, 0);
-    match type_ve.type_desc {
-        TypeDesc::Bool => drop(move_vec_to_rust_vec::<bool>(v)),
-        TypeDesc::U8 => drop(move_vec_to_rust_vec::<u8>(v)),
-        TypeDesc::U16 => drop(move_vec_to_rust_vec::<u16>(v)),
-        TypeDesc::U32 => drop(move_vec_to_rust_vec::<u32>(v)),
-        TypeDesc::U64 => drop(move_vec_to_rust_vec::<u64>(v)),
-        TypeDesc::U128 => drop(move_vec_to_rust_vec::<u128>(v)),
-        TypeDesc::U256 => drop(move_vec_to_rust_vec::<U256>(v)),
-        TypeDesc::Address => drop(move_vec_to_rust_vec::<MoveAddress>(v)),
-        TypeDesc::Signer => drop(move_vec_to_rust_vec::<MoveSigner>(v)),
-        TypeDesc::Vector => {
-            // Safety: need the correct internal pointer alignment to
-            // deallocate; need the outer vector to be empty to avoid
-            // dropping the inner vectors. As in `empty`,
-            // MoveUntypedVector should have the same size/alignment
-            // regardless of the contained type, so no need to interpret
-            // the vector type.
-            drop(move_vec_to_rust_vec::<MoveUntypedVector>(v))
-        }
-        TypeDesc::Struct => {
-            // Safety: like in `empty` we want to deallocate here without
-            // creating a `Vec` of a concrete type, since handling the
-            // alignment would requiring enumerating many types.
-            //
-            // So here we're just going to free the pointer ourselves,
-            // constructing a correct `Layout` value to pass to the
-            // allocator.
-            //
-            // Note that this function can only be called on empty vecs,
-            // so we don't need to care about dropping elements.
-
-            let size = (*type_ve.type_info).struct_.size;
-            let size = usize::try_from(size).expect("overflow");
-            let alignment = (*type_ve.type_info).struct_.alignment;
-            let alignment = usize::try_from(alignment).expect("overflow");
-            let capacity = usize::try_from(v.capacity).expect("overflow");
-
-            assert!(size != 0); // can't handle ZSTs
-
-            if capacity != 0 {
-                let vec_byte_size = capacity.checked_mul(size).expect("overflow");
-                let layout = alloc::alloc::Layout::from_size_align(vec_byte_size, alignment)
-                    .expect("bad size or alignment");
-                alloc::alloc::dealloc(v.ptr, layout);
-            }
-        }
-        TypeDesc::Reference => drop(move_vec_to_rust_vec::<MoveUntypedReference>(v)),
-    }
+    v.destroy_empty(type_ve)
 }
 
 impl<'mv> TypedMoveBorrowedRustVec<'mv> {
