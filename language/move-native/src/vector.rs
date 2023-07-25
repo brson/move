@@ -20,7 +20,6 @@ pub enum TypedMoveBorrowedRustVec<'mv> {
     Vector(MoveType, MoveBorrowedRustVec<'mv, MoveUntypedVector>),
     Struct(MoveBorrowedRustVecOfStruct<'mv>),
     Reference(MoveType, MoveBorrowedRustVec<'mv, MoveUntypedReference>),
-    // todo
 }
 
 #[derive(Debug)]
@@ -37,7 +36,6 @@ pub enum TypedMoveBorrowedRustVecMut<'mv> {
     Vector(MoveType, MoveBorrowedRustVecMut<'mv, MoveUntypedVector>),
     Struct(MoveBorrowedRustVecOfStructMut<'mv>),
     Reference(MoveType, MoveBorrowedRustVecMut<'mv, MoveUntypedReference>),
-    // todo
 }
 
 pub struct MoveBorrowedRustVec<'mv, T> {
