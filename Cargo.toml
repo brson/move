@@ -37,6 +37,7 @@ members = [
     "language/move-ir-compiler/transactional-tests",
     "language/move-ir/types",
     "language/move-model",
+    "language/move-native",
     "language/move-prover",
     "language/move-prover/boogie-backend",
     "language/move-prover/bytecode",
@@ -62,6 +63,9 @@ members = [
     "language/tools/move-coverage",
     "language/tools/move-disassembler",
     "language/tools/move-explain",
+    "language/tools/move-mv-llvm-compiler",
+    "language/tools/move-mv-llvm-compiler/llvm-extra-sys",
+    "language/tools/move-mv-llvm-compiler/utils/testgen",
     "language/tools/move-package",
     "language/tools/move-resource-viewer",
     "language/tools/move-unit-test",
@@ -85,6 +89,7 @@ default-members = [
     "language/tools/move-bytecode-viewer",
     "language/tools/move-cli",
     "language/tools/move-coverage",
+    "language/tools/move-mv-llvm-compiler",
     "language/tools/move-unit-test",
 ]
 
