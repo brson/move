@@ -87,8 +87,10 @@ impl<'mm, 'up> ModuleContext<'mm, 'up> {
         worklist.push_back(m_env.get_id());
         while let Some(mid) = worklist.pop_front() {
             let module_data = &g_env.module_data[mid.to_usize()];
-            for shandle in module_data.module.struct_handles() {
-                let struct_view = StructHandleView::new(&module_data.module, shandle);
+            let module_env = g_env.get_module(mid);
+            let compiled_module = module_env.get_verified_module().expect("compiled module");
+            for shandle in compiled_module.struct_handles() {
+                let struct_view = StructHandleView::new(compiled_module, shandle);
                 let declaring_module_env = g_env
                     .find_module(&g_env.to_module_name(&struct_view.module_id()))
                     .expect("undefined module");
@@ -153,9 +155,10 @@ impl<'mm, 'up> ModuleContext<'mm, 'up> {
         // Now that all the concrete structs are available, pull in the generic ones. Each such
         // StructDefInstantiation will induce a concrete expansion once fields are visited later.
         let this_module_data = &g_env.module_data[m_env.get_id().to_usize()];
-        let cm = &this_module_data.module;
+        let cm = m_env.get_verified_module().expect("compiled module");
+        //let cm = &this_module_data.module;
         for s_def_inst in cm.struct_instantiations() {
-            let tys = m_env.get_type_actuals(Some(s_def_inst.type_parameters));
+            let tys = m_env.get_type_actuals(Some(s_def_inst.type_parameters)).expect("types");
             let s_env = m_env.get_struct_by_def_idx(s_def_inst.def);
             let created = create_opaque_named_struct(&s_env, &tys);
             assert!(created, "struct already exists");
@@ -165,7 +168,7 @@ impl<'mm, 'up> ModuleContext<'mm, 'up> {
         // Similarly, pull in generics from field instantiations.
         for f_inst in cm.field_instantiations() {
             let fld_handle = cm.field_handle_at(f_inst.handle);
-            let tys = m_env.get_type_actuals(Some(f_inst.type_parameters));
+            let tys = m_env.get_type_actuals(Some(f_inst.type_parameters)).expect("types");
             let s_env = m_env.get_struct_by_def_idx(fld_handle.owner);
             if create_opaque_named_struct(&s_env, &tys) {
                 all_structs.push((s_env, tys));
@@ -180,7 +183,7 @@ impl<'mm, 'up> ModuleContext<'mm, 'up> {
                 let mut inst_signatures: Vec<SignatureToken> = Vec::new();
                 SignatureToken::find_struct_instantiation_signatures(st, &mut inst_signatures);
                 for sti in &inst_signatures {
-                    let gs = m_env.globalize_signature(sti);
+                    let gs = m_env.globalize_signature(sti).expect("sigs");
                     if let mty::Type::Struct(mid, sid, tys) = gs {
                         let s_env = g_env.get_module(mid).into_struct(sid);
                         if create_opaque_named_struct(&s_env, &tys) {
@@ -385,7 +388,7 @@ impl<'mm, 'up> ModuleContext<'mm, 'up> {
         let ll_sym_name = fn_env.llvm_symbol_name(tyvec);
         let ll_fn = {
             let ll_fnty = {
-                let ll_rty = match fn_data.return_types.len() {
+                /*let ll_rty = match fn_data.return_types.len() {
                     0 => self.llvm_cx.void_type(),
                     1 => self.to_llvm_type(&fn_data.return_types[0], tyvec),
                     _ => {
@@ -397,7 +400,8 @@ impl<'mm, 'up> ModuleContext<'mm, 'up> {
                             .collect();
                         self.llvm_cx.get_anonymous_struct_type(&tys)
                     }
-                };
+                };*/
+                let ll_rty = self.to_llvm_type(&fn_data.result_type, tyvec);
 
                 let ll_parm_tys = fn_env
                     .get_parameter_types()
@@ -460,7 +464,7 @@ impl<'mm, 'up> ModuleContext<'mm, 'up> {
         let ll_fn = {
             let ll_fnty = {
                 // Generic return values are passed through a final return pointer arg.
-                let (ll_rty, ll_byref_rty) = match fn_data.return_types.len() {
+                /*let (ll_rty, ll_byref_rty) = match fn_data.return_types.len() {
                     0 => (llcx.void_type(), None),
                     1 => {
                         let mty0 = &fn_data.return_types[0];
@@ -472,6 +476,14 @@ impl<'mm, 'up> ModuleContext<'mm, 'up> {
                     }
                     _ => {
                         todo!()
+                    }
+                };*/
+                let (ll_rty, ll_byref_rty) = {
+                    let mty0 = &fn_data.result_type;
+                    if mty0.is_type_parameter() {
+                        (llcx.void_type(), Some(llcx.ptr_type()))
+                    } else {
+                        (self.to_llvm_type(mty0, &[]), None)
                     }
                 };
 
@@ -590,7 +602,7 @@ impl<'mm, 'up> ModuleContext<'mm, 'up> {
         module_cx: &'mm ModuleContext,
         type_params: &'mm [mty::Type],
     ) -> FunctionContext<'mm, 'this> {
-        let locals = Vec::with_capacity(fn_env.get_local_count());
+        let locals = Vec::with_capacity(fn_env.get_local_count().expect("locals"));
         FunctionContext {
             env: fn_env,
             module_cx,
