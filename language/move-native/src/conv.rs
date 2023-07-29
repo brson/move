@@ -29,39 +29,19 @@ pub const fn invalid_mut<T>(addr: usize) -> *mut T {
 }
 
 pub unsafe fn move_byte_vec_to_rust_vec(mv: MoveByteVector) -> Vec<u8> {
-    let ret = MoveUntypedVector {
-        ptr: mv.ptr,
-        capacity: mv.capacity,
-        length: mv.length,
-    };
-    move_vec_to_rust_vec(ret)
+    mv.into_rust_vec()
 }
 
 pub fn rust_vec_to_move_byte_vec(rv: Vec<u8>) -> MoveByteVector {
-    let mv = rust_vec_to_move_vec(rv);
-    MoveByteVector {
-        ptr: mv.ptr,
-        capacity: mv.capacity,
-        length: mv.length,
-    }
+    MoveByteVector::from_rust_vec(rv)
 }
 
 pub unsafe fn move_vec_to_rust_vec<T>(mv: MoveUntypedVector) -> Vec<T> {
-    Vec::from_raw_parts(
-        mv.ptr as *mut T,
-        usize::try_from(mv.length).expect("overflow"),
-        usize::try_from(mv.capacity).expect("overflow"),
-    )
+    mv.into_rust_vec()
 }
 
-pub fn rust_vec_to_move_vec<T>(mut rv: Vec<T>) -> MoveUntypedVector {
-    let mv = MoveUntypedVector {
-        ptr: rv.as_mut_ptr() as *mut u8,
-        capacity: u64::try_from(rv.capacity()).expect("overflow"),
-        length: u64::try_from(rv.len()).expect("overflow"),
-    };
-    mem::forget(rv);
-    mv
+pub fn rust_vec_to_move_vec<T>(rv: Vec<T>) -> MoveUntypedVector {
+    MoveUntypedVector::from_rust_vec(rv)
 }
 
 pub enum BorrowedTypedMoveValue<'mv> {

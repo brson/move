@@ -436,6 +436,26 @@ impl<'mv> MoveBorrowedRustVecOfStructMut<'mv> {
     }
 }
 
+impl MoveUntypedVector {
+    pub unsafe fn into_rust_vec<T>(self) -> Vec<T> {
+        Vec::from_raw_parts(
+            self.ptr as *mut T,
+            usize::try_from(self.length).expect("overflow"),
+            usize::try_from(self.capacity).expect("overflow"),
+        )
+    }
+
+    pub fn from_rust_vec<T>(mut rv: Vec<T>) -> MoveUntypedVector {
+        let mv = MoveUntypedVector {
+            ptr: rv.as_mut_ptr() as *mut u8,
+            capacity: u64::try_from(rv.capacity()).expect("overflow"),
+            length: u64::try_from(rv.len()).expect("overflow"),
+        };
+        mem::forget(rv);
+        mv
+    }
+}
+
 impl MoveByteVector {
     pub unsafe fn as_rust_vec<'mv>(&'mv self) -> MoveBorrowedRustVec<'mv, u8> {
         assert_eq!(
@@ -449,6 +469,24 @@ impl MoveByteVector {
         // Safety: both repr(c) with same layout, probably ok
         let mv: &'mv MoveUntypedVector = mem::transmute(self);
         MoveBorrowedRustVec::new(mv)
+    }
+
+    pub unsafe fn into_rust_vec(self) -> Vec<u8> {
+        let ret = MoveUntypedVector {
+            ptr: self.ptr,
+            capacity: self.capacity,
+            length: self.length,
+        };
+        ret.into_rust_vec()
+    }
+
+    pub fn from_rust_vec(rv: Vec<u8>) -> MoveByteVector {
+        let mv = MoveUntypedVector::from_rust_vec(rv);
+        MoveByteVector {
+            ptr: mv.ptr,
+            capacity: mv.capacity,
+            length: mv.length,
+        }
     }
 }
 
