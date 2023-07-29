@@ -7,6 +7,17 @@ use alloc::vec::Vec;
 use core::{mem, ops::{Deref, DerefMut}, ptr};
 use core::marker::PhantomData;
 
+pub struct MoveBorrowedRustVec<'mv, T> {
+    inner: Vec<T>,
+    _lifetime: PhantomData<&'mv ()>,
+}
+
+#[derive(Debug)]
+pub struct MoveBorrowedRustVecMut<'mv, T> {
+    inner: Vec<T>,
+    original: &'mv mut MoveUntypedVector,
+}
+
 pub enum TypedMoveBorrowedRustVec<'mv> {
     Bool(MoveBorrowedRustVec<'mv, bool>),
     U8(MoveBorrowedRustVec<'mv, u8>),
@@ -38,17 +49,6 @@ pub enum TypedMoveBorrowedRustVecMut<'mv> {
     Reference(MoveType, MoveBorrowedRustVecMut<'mv, MoveUntypedReference>),
 }
 
-pub struct MoveBorrowedRustVec<'mv, T> {
-    inner: Vec<T>,
-    _lifetime: PhantomData<&'mv ()>,
-}
-
-#[derive(Debug)]
-pub struct MoveBorrowedRustVecMut<'mv, T> {
-    inner: Vec<T>,
-    original: &'mv mut MoveUntypedVector,
-}
-
 /// A vector of Move structs.
 ///
 /// Since we can't instantiate Move structs as Rust structs, this is a
@@ -65,193 +65,6 @@ pub struct MoveBorrowedRustVecOfStruct<'mv> {
 pub struct MoveBorrowedRustVecOfStructMut<'mv> {
     inner: &'mv mut MoveUntypedVector,
     type_: &'mv StructTypeInfo,
-}
-
-impl<'mv> TypedMoveBorrowedRustVec<'mv> {
-    // Forced inlining dramatically reduces instruction counts on tests ¯\_(ツ)_/¯
-    #[inline(always)]
-    pub unsafe fn new(
-        type_: &'mv MoveType,
-        mv: &'mv MoveUntypedVector,
-    ) -> TypedMoveBorrowedRustVec<'mv> {
-        match type_.type_desc {
-            TypeDesc::Bool => TypedMoveBorrowedRustVec::Bool(MoveBorrowedRustVec::new(mv)),
-            TypeDesc::U8 => TypedMoveBorrowedRustVec::U8(MoveBorrowedRustVec::new(mv)),
-            TypeDesc::U16 => TypedMoveBorrowedRustVec::U16(MoveBorrowedRustVec::new(mv)),
-            TypeDesc::U32 => TypedMoveBorrowedRustVec::U32(MoveBorrowedRustVec::new(mv)),
-            TypeDesc::U64 => TypedMoveBorrowedRustVec::U64(MoveBorrowedRustVec::new(mv)),
-            TypeDesc::U128 => TypedMoveBorrowedRustVec::U128(MoveBorrowedRustVec::new(mv)),
-            TypeDesc::U256 => TypedMoveBorrowedRustVec::U256(MoveBorrowedRustVec::new(mv)),
-            TypeDesc::Address => {
-                TypedMoveBorrowedRustVec::Address(MoveBorrowedRustVec::new(mv))
-            }
-            TypeDesc::Signer => {
-                TypedMoveBorrowedRustVec::Signer(MoveBorrowedRustVec::new(mv))
-            }
-            TypeDesc::Vector => TypedMoveBorrowedRustVec::Vector(
-                *(*type_.type_info).vector.element_type,
-                MoveBorrowedRustVec::new(mv),
-            ),
-            TypeDesc::Struct => TypedMoveBorrowedRustVec::Struct(
-                MoveBorrowedRustVecOfStruct::new(type_, mv)
-            ),
-            TypeDesc::Reference => TypedMoveBorrowedRustVec::Reference(
-                *(*type_.type_info).reference.element_type,
-                MoveBorrowedRustVec::new(mv),
-            ),
-        }
-    }
-}
-
-impl<'mv> TypedMoveBorrowedRustVecMut<'mv> {
-    // Forced inlining dramatically reduces instruction counts on tests ¯\_(ツ)_/¯
-    #[inline(always)]
-    pub unsafe fn new(
-        type_: &'mv MoveType,
-        mv: &'mv mut MoveUntypedVector,
-    ) -> TypedMoveBorrowedRustVecMut<'mv> {
-        match type_.type_desc {
-            TypeDesc::Bool => {
-                TypedMoveBorrowedRustVecMut::Bool(MoveBorrowedRustVecMut::new(mv))
-            }
-            TypeDesc::U8 => TypedMoveBorrowedRustVecMut::U8(MoveBorrowedRustVecMut::new(mv)),
-            TypeDesc::U16 => {
-                TypedMoveBorrowedRustVecMut::U16(MoveBorrowedRustVecMut::new(mv))
-            }
-            TypeDesc::U32 => {
-                TypedMoveBorrowedRustVecMut::U32(MoveBorrowedRustVecMut::new(mv))
-            }
-            TypeDesc::U64 => {
-                TypedMoveBorrowedRustVecMut::U64(MoveBorrowedRustVecMut::new(mv))
-            }
-            TypeDesc::U128 => {
-                TypedMoveBorrowedRustVecMut::U128(MoveBorrowedRustVecMut::new(mv))
-            }
-            TypeDesc::U256 => {
-                TypedMoveBorrowedRustVecMut::U256(MoveBorrowedRustVecMut::new(mv))
-            }
-            TypeDesc::Address => {
-                TypedMoveBorrowedRustVecMut::Address(MoveBorrowedRustVecMut::new(mv))
-            }
-            TypeDesc::Signer => {
-                TypedMoveBorrowedRustVecMut::Signer(MoveBorrowedRustVecMut::new(mv))
-            }
-            TypeDesc::Vector => TypedMoveBorrowedRustVecMut::Vector(
-                *(*type_.type_info).vector.element_type,
-                MoveBorrowedRustVecMut::new(mv),
-            ),
-            TypeDesc::Struct => TypedMoveBorrowedRustVecMut::Struct(
-                MoveBorrowedRustVecOfStructMut::new(type_, mv)
-            ),
-            TypeDesc::Reference => TypedMoveBorrowedRustVecMut::Reference(
-                *(*type_.type_info).reference.element_type,
-                MoveBorrowedRustVecMut::new(mv),
-            ),
-        }
-    }
-}
-
-impl<'mv, T> MoveBorrowedRustVec<'mv, T> {
-    pub unsafe fn new(mv: &MoveUntypedVector) -> MoveBorrowedRustVec<'_, T> {
-        let rv = Vec::from_raw_parts(
-            mv.ptr as *mut T,
-            usize::try_from(mv.length).expect("overflow"),
-            usize::try_from(mv.capacity).expect("overflow"),
-        );
-        MoveBorrowedRustVec {
-            inner: rv,
-            _lifetime: PhantomData,
-        }
-    }
-}
-
-impl<'mv, T> MoveBorrowedRustVecMut<'mv, T> {
-    pub unsafe fn new(
-        mv: &mut MoveUntypedVector,
-    ) -> MoveBorrowedRustVecMut<'_, T> {
-        let rv = Vec::from_raw_parts(
-            mv.ptr as *mut T,
-            usize::try_from(mv.length).expect("overflow"),
-            usize::try_from(mv.capacity).expect("overflow"),
-        );
-        MoveBorrowedRustVecMut {
-            inner: rv,
-            original: mv,
-        }
-    }
-}
-
-impl<'mv, T> Drop for MoveBorrowedRustVec<'mv, T> {
-    fn drop(&mut self) {
-        let rv = mem::take(&mut self.inner);
-
-        /* mem::forget takes rv by value so it is no longer in scope to be
-        passed to any other function.  We call forget here because
-        rv is type Vec, which owns its interior buffer pointer, but
-        this Vec was temporarily fabricated from a MoveUntypedVector,
-        which actually owns that buffer. So forgetting the Vec quietly
-        destroys it without running the Vec destructor - so that the
-        original MoveUntypedVector can continue owning that buffer.
-        The only reason to call mem::forget is to not run a
-        destructor. */
-
-        mem::forget(rv);
-    }
-}
-
-impl<'mv, T> Drop for MoveBorrowedRustVecMut<'mv, T> {
-    fn drop(&mut self) {
-        let mut rv = mem::take(&mut self.inner);
-
-        self.original.length = u64::try_from(rv.len()).expect("overflow");
-        self.original.capacity = u64::try_from(rv.capacity()).expect("overflow");
-        self.original.ptr = rv.as_mut_ptr() as *mut u8;
-
-        mem::forget(rv);
-    }
-}
-
-impl<'mv, T> Deref for MoveBorrowedRustVec<'mv, T> {
-    type Target = Vec<T>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-
-impl<'mv, T> Deref for MoveBorrowedRustVecMut<'mv, T> {
-    type Target = Vec<T>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-
-impl<'mv, T> DerefMut for MoveBorrowedRustVecMut<'mv, T> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.inner
-    }
-}
-
-impl<'mv> MoveBorrowedRustVecOfStruct<'mv> {
-    unsafe fn new(ty: &'mv MoveType, mv: &'mv MoveUntypedVector) -> MoveBorrowedRustVecOfStruct<'mv> {
-        assert_eq!(ty.type_desc, TypeDesc::Struct);
-        MoveBorrowedRustVecOfStruct {
-            inner: mv,
-            type_: &(*ty.type_info).struct_,
-            full_type: ty
-        }
-    }
-}
-
-impl<'mv> MoveBorrowedRustVecOfStructMut<'mv> {
-    unsafe fn new(ty: &'mv MoveType, mv: &'mv mut MoveUntypedVector) -> MoveBorrowedRustVecOfStructMut<'mv> {
-        assert_eq!(ty.type_desc, TypeDesc::Struct);
-        MoveBorrowedRustVecOfStructMut {
-            inner: mv,
-            type_: &(*ty.type_info).struct_,
-        }
-    }
 }
 
 impl MoveUntypedVector {
@@ -375,6 +188,193 @@ impl MoveUntypedVector {
                 }
             }
             TypeDesc::Reference => drop(move_vec_to_rust_vec::<MoveUntypedReference>(v)),
+        }
+    }
+}
+
+impl<'mv, T> MoveBorrowedRustVec<'mv, T> {
+    pub unsafe fn new(mv: &MoveUntypedVector) -> MoveBorrowedRustVec<'_, T> {
+        let rv = Vec::from_raw_parts(
+            mv.ptr as *mut T,
+            usize::try_from(mv.length).expect("overflow"),
+            usize::try_from(mv.capacity).expect("overflow"),
+        );
+        MoveBorrowedRustVec {
+            inner: rv,
+            _lifetime: PhantomData,
+        }
+    }
+}
+
+impl<'mv, T> MoveBorrowedRustVecMut<'mv, T> {
+    pub unsafe fn new(
+        mv: &mut MoveUntypedVector,
+    ) -> MoveBorrowedRustVecMut<'_, T> {
+        let rv = Vec::from_raw_parts(
+            mv.ptr as *mut T,
+            usize::try_from(mv.length).expect("overflow"),
+            usize::try_from(mv.capacity).expect("overflow"),
+        );
+        MoveBorrowedRustVecMut {
+            inner: rv,
+            original: mv,
+        }
+    }
+}
+
+impl<'mv, T> Drop for MoveBorrowedRustVec<'mv, T> {
+    fn drop(&mut self) {
+        let rv = mem::take(&mut self.inner);
+
+        /* mem::forget takes rv by value so it is no longer in scope to be
+        passed to any other function.  We call forget here because
+        rv is type Vec, which owns its interior buffer pointer, but
+        this Vec was temporarily fabricated from a MoveUntypedVector,
+        which actually owns that buffer. So forgetting the Vec quietly
+        destroys it without running the Vec destructor - so that the
+        original MoveUntypedVector can continue owning that buffer.
+        The only reason to call mem::forget is to not run a
+        destructor. */
+
+        mem::forget(rv);
+    }
+}
+
+impl<'mv, T> Drop for MoveBorrowedRustVecMut<'mv, T> {
+    fn drop(&mut self) {
+        let mut rv = mem::take(&mut self.inner);
+
+        self.original.length = u64::try_from(rv.len()).expect("overflow");
+        self.original.capacity = u64::try_from(rv.capacity()).expect("overflow");
+        self.original.ptr = rv.as_mut_ptr() as *mut u8;
+
+        mem::forget(rv);
+    }
+}
+
+impl<'mv, T> Deref for MoveBorrowedRustVec<'mv, T> {
+    type Target = Vec<T>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl<'mv, T> Deref for MoveBorrowedRustVecMut<'mv, T> {
+    type Target = Vec<T>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl<'mv, T> DerefMut for MoveBorrowedRustVecMut<'mv, T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
+    }
+}
+
+impl<'mv> TypedMoveBorrowedRustVec<'mv> {
+    // Forced inlining dramatically reduces instruction counts on tests ¯\_(ツ)_/¯
+    #[inline(always)]
+    pub unsafe fn new(
+        type_: &'mv MoveType,
+        mv: &'mv MoveUntypedVector,
+    ) -> TypedMoveBorrowedRustVec<'mv> {
+        match type_.type_desc {
+            TypeDesc::Bool => TypedMoveBorrowedRustVec::Bool(MoveBorrowedRustVec::new(mv)),
+            TypeDesc::U8 => TypedMoveBorrowedRustVec::U8(MoveBorrowedRustVec::new(mv)),
+            TypeDesc::U16 => TypedMoveBorrowedRustVec::U16(MoveBorrowedRustVec::new(mv)),
+            TypeDesc::U32 => TypedMoveBorrowedRustVec::U32(MoveBorrowedRustVec::new(mv)),
+            TypeDesc::U64 => TypedMoveBorrowedRustVec::U64(MoveBorrowedRustVec::new(mv)),
+            TypeDesc::U128 => TypedMoveBorrowedRustVec::U128(MoveBorrowedRustVec::new(mv)),
+            TypeDesc::U256 => TypedMoveBorrowedRustVec::U256(MoveBorrowedRustVec::new(mv)),
+            TypeDesc::Address => {
+                TypedMoveBorrowedRustVec::Address(MoveBorrowedRustVec::new(mv))
+            }
+            TypeDesc::Signer => {
+                TypedMoveBorrowedRustVec::Signer(MoveBorrowedRustVec::new(mv))
+            }
+            TypeDesc::Vector => TypedMoveBorrowedRustVec::Vector(
+                *(*type_.type_info).vector.element_type,
+                MoveBorrowedRustVec::new(mv),
+            ),
+            TypeDesc::Struct => TypedMoveBorrowedRustVec::Struct(
+                MoveBorrowedRustVecOfStruct::new(type_, mv)
+            ),
+            TypeDesc::Reference => TypedMoveBorrowedRustVec::Reference(
+                *(*type_.type_info).reference.element_type,
+                MoveBorrowedRustVec::new(mv),
+            ),
+        }
+    }
+}
+
+impl<'mv> TypedMoveBorrowedRustVecMut<'mv> {
+    // Forced inlining dramatically reduces instruction counts on tests ¯\_(ツ)_/¯
+    #[inline(always)]
+    pub unsafe fn new(
+        type_: &'mv MoveType,
+        mv: &'mv mut MoveUntypedVector,
+    ) -> TypedMoveBorrowedRustVecMut<'mv> {
+        match type_.type_desc {
+            TypeDesc::Bool => {
+                TypedMoveBorrowedRustVecMut::Bool(MoveBorrowedRustVecMut::new(mv))
+            }
+            TypeDesc::U8 => TypedMoveBorrowedRustVecMut::U8(MoveBorrowedRustVecMut::new(mv)),
+            TypeDesc::U16 => {
+                TypedMoveBorrowedRustVecMut::U16(MoveBorrowedRustVecMut::new(mv))
+            }
+            TypeDesc::U32 => {
+                TypedMoveBorrowedRustVecMut::U32(MoveBorrowedRustVecMut::new(mv))
+            }
+            TypeDesc::U64 => {
+                TypedMoveBorrowedRustVecMut::U64(MoveBorrowedRustVecMut::new(mv))
+            }
+            TypeDesc::U128 => {
+                TypedMoveBorrowedRustVecMut::U128(MoveBorrowedRustVecMut::new(mv))
+            }
+            TypeDesc::U256 => {
+                TypedMoveBorrowedRustVecMut::U256(MoveBorrowedRustVecMut::new(mv))
+            }
+            TypeDesc::Address => {
+                TypedMoveBorrowedRustVecMut::Address(MoveBorrowedRustVecMut::new(mv))
+            }
+            TypeDesc::Signer => {
+                TypedMoveBorrowedRustVecMut::Signer(MoveBorrowedRustVecMut::new(mv))
+            }
+            TypeDesc::Vector => TypedMoveBorrowedRustVecMut::Vector(
+                *(*type_.type_info).vector.element_type,
+                MoveBorrowedRustVecMut::new(mv),
+            ),
+            TypeDesc::Struct => TypedMoveBorrowedRustVecMut::Struct(
+                MoveBorrowedRustVecOfStructMut::new(type_, mv)
+            ),
+            TypeDesc::Reference => TypedMoveBorrowedRustVecMut::Reference(
+                *(*type_.type_info).reference.element_type,
+                MoveBorrowedRustVecMut::new(mv),
+            ),
+        }
+    }
+}
+
+impl<'mv> MoveBorrowedRustVecOfStruct<'mv> {
+    unsafe fn new(ty: &'mv MoveType, mv: &'mv MoveUntypedVector) -> MoveBorrowedRustVecOfStruct<'mv> {
+        assert_eq!(ty.type_desc, TypeDesc::Struct);
+        MoveBorrowedRustVecOfStruct {
+            inner: mv,
+            type_: &(*ty.type_info).struct_,
+            full_type: ty
+        }
+    }
+}
+
+impl<'mv> MoveBorrowedRustVecOfStructMut<'mv> {
+    unsafe fn new(ty: &'mv MoveType, mv: &'mv mut MoveUntypedVector) -> MoveBorrowedRustVecOfStructMut<'mv> {
+        assert_eq!(ty.type_desc, TypeDesc::Struct);
+        MoveBorrowedRustVecOfStructMut {
+            inner: mv,
+            type_: &(*ty.type_info).struct_,
         }
     }
 }
