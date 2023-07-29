@@ -658,22 +658,20 @@ impl<'mv> TypedMoveBorrowedRustVecMut<'mv> {
     ) -> *mut AnyValue {
         unsafe {
             let i = usize::try_from(i).expect("usize");
-            let value = match self {
-                TypedMoveBorrowedRustVecMut::Bool(ref mut v) => mem::transmute(&mut v[i]),
-                TypedMoveBorrowedRustVecMut::U8(ref mut v) => mem::transmute(&mut v[i]),
-                TypedMoveBorrowedRustVecMut::U16(ref mut v) => mem::transmute(&mut v[i]),
-                TypedMoveBorrowedRustVecMut::U32(ref mut v) => mem::transmute(&mut v[i]),
-                TypedMoveBorrowedRustVecMut::U64(ref mut v) => mem::transmute(&mut v[i]),
-                TypedMoveBorrowedRustVecMut::U128(ref mut v) => mem::transmute(&mut v[i]),
-                TypedMoveBorrowedRustVecMut::U256(ref mut v) => mem::transmute(&mut v[i]),
-                TypedMoveBorrowedRustVecMut::Address(ref mut v) => mem::transmute(&mut v[i]),
-                TypedMoveBorrowedRustVecMut::Signer(ref mut v) => mem::transmute(&mut v[i]),
-                TypedMoveBorrowedRustVecMut::Vector(_t, ref mut v) => mem::transmute(&mut v[i]),
+            match self {
+                TypedMoveBorrowedRustVecMut::Bool(ref mut v) => &mut v[i] as *mut bool as *mut AnyValue,
+                TypedMoveBorrowedRustVecMut::U8(ref mut v) => &mut v[i] as *mut u8 as *mut AnyValue,
+                TypedMoveBorrowedRustVecMut::U16(ref mut v) => &mut v[i] as *mut u16 as *mut AnyValue,
+                TypedMoveBorrowedRustVecMut::U32(ref mut v) => &mut v[i] as *mut u32 as *mut AnyValue,
+                TypedMoveBorrowedRustVecMut::U64(ref mut v) => &mut v[i] as *mut u64 as *mut AnyValue,
+                TypedMoveBorrowedRustVecMut::U128(ref mut v) => &mut v[i] as *mut u128 as *mut AnyValue,
+                TypedMoveBorrowedRustVecMut::U256(ref mut v) => &mut v[i] as *mut U256 as *mut AnyValue,
+                TypedMoveBorrowedRustVecMut::Address(ref mut v) => &mut v[i] as *mut MoveAddress as *mut AnyValue,
+                TypedMoveBorrowedRustVecMut::Signer(ref mut v) => &mut v[i] as *mut MoveSigner as *mut AnyValue,
+                TypedMoveBorrowedRustVecMut::Vector(_t, ref mut v) => &mut v[i] as *mut MoveUntypedVector as *mut AnyValue,
                 TypedMoveBorrowedRustVecMut::Struct(ref mut s) => s.get_mut(i),
-                TypedMoveBorrowedRustVecMut::Reference(_t, ref mut v) => mem::transmute(&mut v[i]),
-            };
-
-            value
+                TypedMoveBorrowedRustVecMut::Reference(_t, ref mut v) => &mut v[i] as *mut MoveUntypedReference as *mut AnyValue,
+            }
         }
     }
 

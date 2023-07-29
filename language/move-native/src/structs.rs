@@ -60,8 +60,8 @@ pub unsafe fn cmp_eq(type_ve: &MoveType, s1: &AnyValue, s2: &AnyValue) -> bool {
             (BTMV::Address(val1), BTMV::Address(val2)) => val1 == val2,
             (BTMV::Signer(val1), BTMV::Signer(val2)) => val1 == val2,
             (BTMV::Vector(t1, utv1), BTMV::Vector(t2, utv2)) => {
-                let v1 = TypedMoveBorrowedRustVec::new(&t1, &utv1);
-                let v2 = TypedMoveBorrowedRustVec::new(&t2, &utv2);
+                let v1 = TypedMoveBorrowedRustVec::new(&t1, utv1);
+                let v2 = TypedMoveBorrowedRustVec::new(&t2, utv2);
                 v1.cmp_eq(&v2)
             }
             (BTMV::Struct(t1, anyv1), BTMV::Struct(_t2, anyv2)) => cmp_eq(&t1, anyv1, anyv2),
