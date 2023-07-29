@@ -379,14 +379,6 @@ impl MoveUntypedVector {
     }
 }
 
-pub unsafe fn empty(type_r: &MoveType) -> MoveUntypedVector {
-    MoveUntypedVector::empty(type_r)
-}
-
-pub unsafe fn destroy_empty(type_ve: &MoveType, v: MoveUntypedVector) {
-    v.destroy_empty(type_ve)
-}
-
 impl<'mv> TypedMoveBorrowedRustVec<'mv> {
     pub fn len(&self) -> u64 {
         let len = match self {
@@ -481,7 +473,9 @@ impl<'mv> TypedMoveBorrowedRustVec<'mv> {
                     let anyval_ref2 = v2t.borrow(i);
                     let mv_ut_vec1 = &*(anyval_ref1 as *const AnyValue as *const MoveUntypedVector);
                     let mv_ut_vec2 = &*(anyval_ref2 as *const AnyValue as *const MoveUntypedVector);
-                    tmp_result = cmp_eq(&inner_element_type, mv_ut_vec1, mv_ut_vec2);
+                    let mv_vec1 = TypedMoveBorrowedRustVec::new(inner_element_type, mv_ut_vec1);
+                    let mv_vec2 = TypedMoveBorrowedRustVec::new(inner_element_type, mv_ut_vec2);
+                    tmp_result = mv_vec1.cmp_eq(&mv_vec2);
                     if !tmp_result {
                         break;
                     }
@@ -505,16 +499,6 @@ impl<'mv> TypedMoveBorrowedRustVec<'mv> {
         };
         is_eq
     }
-}
-
-pub unsafe fn length(type_ve: &MoveType, v: &MoveUntypedVector) -> u64 {
-    let rust_vec = TypedMoveBorrowedRustVec::new(type_ve, v);
-    rust_vec.len()
-}
-
-pub unsafe fn borrow<'v>(type_ve: &'v MoveType, v: &'v MoveUntypedVector, i: u64) -> &'v AnyValue {
-    let rust_vec = TypedMoveBorrowedRustVec::new(type_ve, v);
-    rust_vec.borrow(i)
 }
 
 impl<'mv> TypedMoveBorrowedRustVecMut<'mv> {
@@ -704,42 +688,6 @@ impl<'mv> TypedMoveBorrowedRustVecMut<'mv> {
             self.push_back(septr);
         }
     }
-}
-
-pub unsafe fn push_back(type_ve: &MoveType, v: &mut MoveUntypedVector, e: *mut AnyValue) {
-    let mut rust_vec = TypedMoveBorrowedRustVecMut::new(type_ve, v);
-    rust_vec.push_back(e)
-}
-
-pub unsafe fn borrow_mut(
-    type_ve: &MoveType,
-    v: &mut MoveUntypedVector,
-    i: u64,
-) -> *mut AnyValue {
-    let mut rust_vec = TypedMoveBorrowedRustVecMut::new(type_ve, v);
-    rust_vec.borrow_mut(i)
-}
-
-pub unsafe fn pop_back(type_ve: &MoveType, v: &mut MoveUntypedVector, r: *mut AnyValue) {
-    let mut rust_vec = TypedMoveBorrowedRustVecMut::new(type_ve, v);
-    rust_vec.pop_back(r)
-}
-
-pub unsafe fn swap(type_ve: &MoveType, v: &mut MoveUntypedVector, i: u64, j: u64) {
-    let mut rust_vec = TypedMoveBorrowedRustVecMut::new(type_ve, v);
-    rust_vec.swap(i, j)
-}
-
-pub unsafe fn copy(type_ve: &MoveType, dstv: &mut MoveUntypedVector, srcv: &MoveUntypedVector) {
-    let srcv = TypedMoveBorrowedRustVec::new(type_ve, srcv);
-    let mut dstv = TypedMoveBorrowedRustVecMut::new(type_ve, dstv);
-    dstv.copy_from(&srcv)
-}
-
-pub unsafe fn cmp_eq(type_ve: &MoveType, v1: &MoveUntypedVector, v2: &MoveUntypedVector) -> bool {
-    let v1t = TypedMoveBorrowedRustVec::new(type_ve, v1);
-    let v2t = TypedMoveBorrowedRustVec::new(type_ve, v2);
-    v1t.cmp_eq(&v2t)
 }
 
 impl<'mv> MoveBorrowedRustVecOfStruct<'mv> {

@@ -3,7 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use super::*;
-use crate::{conv::*, rt_types::*, std::string::*, target_defs::ACCOUNT_ADDRESS_LENGTH, vector};
+use crate::{conv::*, rt_types::*, std::string::*, target_defs::ACCOUNT_ADDRESS_LENGTH};
+use crate::vector::{TypedMoveBorrowedRustVec, TypedMoveBorrowedRustVecMut};
 use alloc::{string::String, vec};
 use core::mem;
 
@@ -86,26 +87,26 @@ fn test_vec_with_bool() {
             type_info: &TypeInfo { nothing: 0 },
         };
 
-        let mut move_vec = vector::empty(&ELEMENT_TYPE);
+        let mut move_vec = MoveUntypedVector::empty(&ELEMENT_TYPE);
         assert_eq!(move_vec.length, 0);
         assert_eq!(move_vec.capacity, 0);
 
-        let move_vec_len = vector::length(&ELEMENT_TYPE, &move_vec);
+        let move_vec_len = TypedMoveBorrowedRustVec::new(&ELEMENT_TYPE, &move_vec).len();
         assert_eq!(move_vec_len, 0);
 
         let mut new_element: bool = true;
         let new_element_ptr = &mut new_element as *mut _ as *mut AnyValue;
-        vector::push_back(&ELEMENT_TYPE, &mut move_vec, new_element_ptr);
+        TypedMoveBorrowedRustVecMut::new(&ELEMENT_TYPE, &mut move_vec).push_back(new_element_ptr);
         assert_eq!(move_vec.length, 1);
 
         let mut popped_element: bool = false;
         let popped_element_ptr = &mut popped_element as *mut _ as *mut AnyValue;
 
-        vector::pop_back(&ELEMENT_TYPE, &mut move_vec, popped_element_ptr);
+        TypedMoveBorrowedRustVecMut::new(&ELEMENT_TYPE, &mut move_vec).pop_back(popped_element_ptr);
         assert_eq!(move_vec.length, 0);
         assert_eq!(popped_element, true);
 
-        vector::destroy_empty(&ELEMENT_TYPE, move_vec);
+        move_vec.destroy_empty(&ELEMENT_TYPE);
     }
 }
 
@@ -138,66 +139,70 @@ fn test_vec_with_vector() {
             },
         };
 
-        let mut move_vec = vector::empty(&OUTER_ELEMENT_TYPE);
+        let mut move_vec = MoveUntypedVector::empty(&OUTER_ELEMENT_TYPE);
         assert_eq!(move_vec.length, 0);
         assert_eq!(move_vec.capacity, 0);
 
-        let move_vec_len = vector::length(&OUTER_ELEMENT_TYPE, &move_vec);
+        let move_vec_len = TypedMoveBorrowedRustVec::new(&OUTER_ELEMENT_TYPE, &move_vec).len();
         assert_eq!(move_vec_len, 0);
 
-        let mut new_element_vec = vector::empty(&INNER_ELEMENT_TYPE);
+        let mut new_element_vec = MoveUntypedVector::empty(&INNER_ELEMENT_TYPE);
 
         let mut new_element_inner_0 = true;
         let new_element_inner_ptr_0 = &mut new_element_inner_0 as *mut _ as *mut AnyValue;
-        vector::push_back(
+        TypedMoveBorrowedRustVecMut::new(
             &INNER_ELEMENT_TYPE,
-            &mut new_element_vec,
+            &mut new_element_vec)
+            .push_back(
             new_element_inner_ptr_0,
         );
 
         let mut new_element_inner_1 = false;
         let new_element_inner_ptr_1 = &mut new_element_inner_1 as *mut _ as *mut AnyValue;
-        vector::push_back(
+        TypedMoveBorrowedRustVecMut::new(
             &INNER_ELEMENT_TYPE,
-            &mut new_element_vec,
+            &mut new_element_vec)
+            .push_back(
             new_element_inner_ptr_1,
         );
 
-        let new_element_vec_len = vector::length(&INNER_ELEMENT_TYPE, &new_element_vec);
+        let new_element_vec_len = TypedMoveBorrowedRustVec::new(&INNER_ELEMENT_TYPE, &new_element_vec).len();
         assert_eq!(new_element_vec_len, 2);
 
         let new_element_vec_ptr = &mut new_element_vec as *mut _ as *mut AnyValue;
-        vector::push_back(&OUTER_ELEMENT_TYPE, &mut move_vec, new_element_vec_ptr);
+        TypedMoveBorrowedRustVecMut::new(&OUTER_ELEMENT_TYPE, &mut move_vec).push_back(new_element_vec_ptr);
         assert_eq!(move_vec.length, 1);
 
-        let mut popped_element = vector::empty(&INNER_ELEMENT_TYPE);
+        let mut popped_element = MoveUntypedVector::empty(&INNER_ELEMENT_TYPE);
         let popped_element_ptr = &mut popped_element as *mut _ as *mut AnyValue;
 
-        vector::pop_back(&OUTER_ELEMENT_TYPE, &mut move_vec, popped_element_ptr);
+        TypedMoveBorrowedRustVecMut::new(&OUTER_ELEMENT_TYPE, &mut move_vec).pop_back(popped_element_ptr);
         assert_eq!(move_vec.length, 0);
 
         let mut popped_element_inner_0: bool = true;
         let popped_element_inner_ptr_0 = &mut popped_element_inner_0 as *mut _ as *mut AnyValue;
-        vector::pop_back(
+        TypedMoveBorrowedRustVecMut::new(
             &INNER_ELEMENT_TYPE,
             &mut popped_element,
+            ).pop_back(
             popped_element_inner_ptr_0,
         );
         assert_eq!(popped_element_inner_0, false);
 
         let mut popped_element_inner_1: bool = false;
         let popped_element_inner_ptr_1 = &mut popped_element_inner_1 as *mut _ as *mut AnyValue;
-        vector::pop_back(
+        TypedMoveBorrowedRustVecMut::new(
             &INNER_ELEMENT_TYPE,
-            &mut popped_element,
+            &mut popped_element,)
+            .pop_back(
             popped_element_inner_ptr_1,
         );
         assert_eq!(popped_element_inner_1, true);
 
         assert_eq!(popped_element.length, 0);
 
-        vector::destroy_empty(&INNER_ELEMENT_TYPE, popped_element);
-        vector::destroy_empty(&OUTER_ELEMENT_TYPE, move_vec);
+        popped_element.destroy_empty(&INNER_ELEMENT_TYPE);
+        move_vec.destroy_empty(&OUTER_ELEMENT_TYPE);
     }
 }
 
@@ -210,29 +215,29 @@ fn test_vec_with_signer() {
             type_info: &TypeInfo { nothing: 0 },
         };
 
-        let mut move_vec = vector::empty(&ELEMENT_TYPE);
+        let mut move_vec = MoveUntypedVector::empty(&ELEMENT_TYPE);
         assert_eq!(move_vec.length, 0);
         assert_eq!(move_vec.capacity, 0);
 
-        let move_vec_len = vector::length(&ELEMENT_TYPE, &move_vec);
+        let move_vec_len = TypedMoveBorrowedRustVec::new(&ELEMENT_TYPE, &move_vec).len();
         assert_eq!(move_vec_len, 0);
 
         let mut new_element: MoveSigner = MoveSigner(MoveAddress([u8::MIN; ACCOUNT_ADDRESS_LENGTH]));
         let new_element_ptr = &mut new_element as *mut _ as *mut AnyValue;
-        vector::push_back(&ELEMENT_TYPE, &mut move_vec, new_element_ptr);
+        TypedMoveBorrowedRustVecMut::new(&ELEMENT_TYPE, &mut move_vec).push_back(new_element_ptr);
         assert_eq!(move_vec.length, 1);
 
         let mut popped_element: MoveSigner = MoveSigner(MoveAddress([u8::MAX; ACCOUNT_ADDRESS_LENGTH]));
         let popped_element_ptr = &mut popped_element as *mut _ as *mut AnyValue;
 
-        vector::pop_back(&ELEMENT_TYPE, &mut move_vec, popped_element_ptr);
+        TypedMoveBorrowedRustVecMut::new(&ELEMENT_TYPE, &mut move_vec).pop_back(popped_element_ptr);
         assert_eq!(move_vec.length, 0);
         assert_eq!(
             popped_element,
             MoveSigner(MoveAddress([u8::MIN; ACCOUNT_ADDRESS_LENGTH]))
         );
 
-        vector::destroy_empty(&ELEMENT_TYPE, move_vec);
+        move_vec.destroy_empty(&ELEMENT_TYPE);
     }
 }
 
@@ -283,11 +288,11 @@ fn test_vec_with_struct() {
             },
         };
 
-        let mut move_vec = vector::empty(&ELEMENT_TYPE);
+        let mut move_vec = MoveUntypedVector::empty(&ELEMENT_TYPE);
         assert_eq!(move_vec.length, 0);
         assert_eq!(move_vec.capacity, 0);
 
-        let move_vec_len = vector::length(&ELEMENT_TYPE, &move_vec);
+        let move_vec_len = TypedMoveBorrowedRustVec::new(&ELEMENT_TYPE, &move_vec).len();
         assert_eq!(move_vec_len, 0);
 
         #[repr(C)]
@@ -303,7 +308,7 @@ fn test_vec_with_struct() {
         };
         let new_element_ptr = &mut new_element as *mut _ as *mut AnyValue;
 
-        vector::push_back(&ELEMENT_TYPE, &mut move_vec, new_element_ptr);
+        TypedMoveBorrowedRustVecMut::new(&ELEMENT_TYPE, &mut move_vec).push_back(new_element_ptr);
         assert_eq!(move_vec.length, 1);
 
         let mut popped_element: SimpleStruct = SimpleStruct {
@@ -312,7 +317,7 @@ fn test_vec_with_struct() {
         };
         let popped_element_ptr = &mut popped_element as *mut _ as *mut AnyValue;
 
-        vector::pop_back(&ELEMENT_TYPE, &mut move_vec, popped_element_ptr);
+        TypedMoveBorrowedRustVecMut::new(&ELEMENT_TYPE, &mut move_vec).pop_back(popped_element_ptr);
         assert_eq!(move_vec.length, 0);
         assert_eq!(
             popped_element,
@@ -322,6 +327,6 @@ fn test_vec_with_struct() {
             }
         );
 
-        vector::destroy_empty(&ELEMENT_TYPE, move_vec);
+        move_vec.destroy_empty(&ELEMENT_TYPE);
     }
 }

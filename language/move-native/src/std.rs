@@ -165,7 +165,7 @@ mod type_name {
             type_desc: TypeDesc::U8,
             type_info: &TypeInfo { nothing: 0 },
         };
-        let mut byte_vector = crate::vector::empty(&byte_type);
+        let mut byte_vector = MoveUntypedVector::empty(&byte_type);
         {
             let mut rust_byte_vector = MoveBorrowedRustVecMut::<u8>::new(&mut byte_vector);
             rust_byte_vector.reserve_exact(name_slice.len());
@@ -193,18 +193,19 @@ mod unit_test {
 
 mod vector {
     use crate::rt_types::*;
+    use crate::vector::{TypedMoveBorrowedRustVec, TypedMoveBorrowedRustVecMut};
 
     // Safety: Even empty Rust vectors have non-null buffer pointers,
     // which must be correctly aligned. This function crates empty Rust vecs
     // of the correct type and converts them to untyped move vecs.
     #[export_name = "move_native_vector_empty"]
     unsafe extern "C" fn empty(type_r: &MoveType) -> MoveUntypedVector {
-        crate::vector::empty(type_r)
+        MoveUntypedVector::empty(type_r)
     }
 
     #[export_name = "move_native_vector_length"]
     unsafe extern "C" fn length(type_ve: &MoveType, v: &MoveUntypedVector) -> u64 {
-        crate::vector::length(type_ve, v)
+        TypedMoveBorrowedRustVec::new(type_ve, v).len()
     }
 
     #[export_name = "move_native_vector_borrow"]
@@ -213,7 +214,7 @@ mod vector {
         v: &'v MoveUntypedVector,
         i: u64,
     ) -> &'v AnyValue {
-        crate::vector::borrow(type_ve, v, i)
+        TypedMoveBorrowedRustVec::new(type_ve, v).borrow(i)
     }
 
     #[export_name = "move_native_vector_push_back"]
@@ -222,7 +223,7 @@ mod vector {
         v: &mut MoveUntypedVector,
         e: *mut AnyValue,
     ) {
-        crate::vector::push_back(type_ve, v, e)
+        TypedMoveBorrowedRustVecMut::new(type_ve, v).push_back(e)
     }
 
     #[export_name = "move_native_vector_borrow_mut"]
@@ -231,21 +232,21 @@ mod vector {
         v: &'v mut MoveUntypedVector,
         i: u64,
     ) -> *mut AnyValue {
-        crate::vector::borrow_mut(type_ve, v, i)
+        TypedMoveBorrowedRustVecMut::new(type_ve, v).borrow_mut(i)
     }
 
     #[export_name = "move_native_vector_pop_back"]
     unsafe extern "C" fn pop_back(type_ve: &MoveType, v: &mut MoveUntypedVector, r: *mut AnyValue) {
-        crate::vector::pop_back(type_ve, v, r)
+        TypedMoveBorrowedRustVecMut::new(type_ve, v).pop_back(r)
     }
 
     #[export_name = "move_native_vector_destroy_empty"]
     unsafe extern "C" fn destroy_empty(type_ve: &MoveType, v: MoveUntypedVector) {
-        crate::vector::destroy_empty(type_ve, v)
+        v.destroy_empty(type_ve)
     }
 
     #[export_name = "move_native_vector_swap"]
     unsafe extern "C" fn swap(type_ve: &MoveType, v: &mut MoveUntypedVector, i: u64, j: u64) {
-        crate::vector::swap(type_ve, v, i, j)
+        TypedMoveBorrowedRustVecMut::new(type_ve, v).swap(i, j)
     }
 }
