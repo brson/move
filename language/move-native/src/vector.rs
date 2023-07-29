@@ -58,6 +58,7 @@
 //! - type definitions
 //! - constructors, destructors, conversions, and deref impls
 //! - additional operations
+//! - Debug impls
 
 use crate::{conv::*, rt_types::*};
 use alloc::vec::Vec;
@@ -1017,5 +1018,53 @@ impl<'mv> MoveBorrowedRustVecOfStructMut<'mv> {
         // Safety: because of the presense of uninitialized padding bytes,
         // we must (I think) do this swap with raw pointers, not slices.
         ptr::swap_nonoverlapping(i_element_ptr, j_element_ptr, struct_size);
+    }
+}
+
+impl<'mv> core::fmt::Debug for TypedMoveBorrowedRustVec<'mv> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            TypedMoveBorrowedRustVec::Bool(v) => v.fmt(f),
+            TypedMoveBorrowedRustVec::U8(v) => v.fmt(f),
+            TypedMoveBorrowedRustVec::U16(v) => v.fmt(f),
+            TypedMoveBorrowedRustVec::U32(v) => v.fmt(f),
+            TypedMoveBorrowedRustVec::U64(v) => v.fmt(f),
+            TypedMoveBorrowedRustVec::U128(v) => v.fmt(f),
+            TypedMoveBorrowedRustVec::U256(v) => v.fmt(f),
+            TypedMoveBorrowedRustVec::Address(v) => v.fmt(f),
+            TypedMoveBorrowedRustVec::Signer(v) => v.fmt(f),
+            TypedMoveBorrowedRustVec::Vector(t, v) => {
+                let mut dbg = f.debug_list();
+                for e in v.iter() {
+                    unsafe {
+                        let e = TypedMoveBorrowedRustVec::new(t, e);
+                        dbg.entry(&e);
+                    }
+                }
+                dbg.finish()
+            }
+            TypedMoveBorrowedRustVec::Struct(s) => {
+                f.write_str("[")?;
+                unsafe {
+                    for vref in s.iter() {
+                        let e = borrow_move_value_as_rust_value(s.type_(), vref);
+                        e.fmt(f)?;
+                        f.write_str(", ")?;
+                    }
+                }
+                f.write_str("]")?;
+                Ok(())
+            }
+            TypedMoveBorrowedRustVec::Reference(t, v) => {
+                let mut dbg = f.debug_list();
+                for e in v.iter() {
+                    unsafe {
+                        let e = borrow_move_value_as_rust_value(t, &*e.0);
+                        dbg.entry(&e);
+                    }
+                }
+                dbg.finish()
+            }
+        }
     }
 }
