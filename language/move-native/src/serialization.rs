@@ -64,7 +64,7 @@ unsafe fn serialize_to_buf(type_v: &MoveType, v: &AnyValue, buf: &mut Vec<u8>) {
 }
 
 pub unsafe fn deserialize(type_v: &MoveType, bytes: &MoveByteVector, v: *mut AnyValue) {
-    let bytes = borrow_move_byte_vec_as_rust_vec(bytes);
+    let bytes = bytes.as_rust_vec();
     let bytes = &mut &bytes[..];
     deserialize_from_slice(type_v, bytes, v);
     assert!(bytes.is_empty());

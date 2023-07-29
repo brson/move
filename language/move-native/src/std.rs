@@ -105,7 +105,7 @@ pub(crate) mod string {
 
     #[export_name = "move_native_string_internal_check_utf8"]
     pub unsafe extern "C" fn internal_check_utf8(v: &MoveByteVector) -> bool {
-        let rust_vec = borrow_move_byte_vec_as_rust_vec(v);
+        let rust_vec = v.as_rust_vec();
         let res = str::from_utf8(&rust_vec);
 
         res.is_ok()
@@ -113,7 +113,7 @@ pub(crate) mod string {
 
     #[export_name = "move_native_string_internal_is_char_boundary"]
     pub unsafe extern "C" fn internal_is_char_boundary(v: &MoveByteVector, i: u64) -> bool {
-        let rust_vec = borrow_move_byte_vec_as_rust_vec(v);
+        let rust_vec = v.as_rust_vec();
         let i = usize::try_from(i).expect("usize");
 
         let rust_str = str::from_utf8(&rust_vec).expect("invalid utf8");
@@ -126,7 +126,7 @@ pub(crate) mod string {
         i: u64,
         j: u64,
     ) -> MoveByteVector {
-        let rust_vec = borrow_move_byte_vec_as_rust_vec(v);
+        let rust_vec = v.as_rust_vec();
         let i = usize::try_from(i).expect("usize");
         let j = usize::try_from(j).expect("usize");
 
@@ -138,9 +138,9 @@ pub(crate) mod string {
 
     #[export_name = "move_native_string_internal_index_of"]
     pub unsafe extern "C" fn internal_index_of(s: &MoveByteVector, r: &MoveByteVector) -> u64 {
-        let s_rust_vec = borrow_move_byte_vec_as_rust_vec(s);
+        let s_rust_vec = s.as_rust_vec();
         let s_rust_str = str::from_utf8(&s_rust_vec).expect("invalid utf8");
-        let r_rust_vec = borrow_move_byte_vec_as_rust_vec(r);
+        let r_rust_vec = r.as_rust_vec();
         let r_rust_str = str::from_utf8(&r_rust_vec).expect("invalid utf8");
 
         let res = s_rust_str.find(r_rust_str);

@@ -8,7 +8,6 @@ use core::{
     mem,
 };
 use crate::vector::{
-    MoveBorrowedRustVec,
     TypedMoveBorrowedRustVec,
 };
 
@@ -45,22 +44,6 @@ pub fn rust_vec_to_move_byte_vec(rv: Vec<u8>) -> MoveByteVector {
         capacity: mv.capacity,
         length: mv.length,
     }
-}
-
-pub fn borrow_move_byte_vec_as_rust_vec<'mv>(
-    mv: &'mv MoveByteVector,
-) -> MoveBorrowedRustVec<'mv, u8> {
-    assert_eq!(
-        mem::size_of::<MoveByteVector>(),
-        mem::size_of::<MoveUntypedVector>()
-    );
-    assert_eq!(
-        mem::align_of::<MoveByteVector>(),
-        mem::align_of::<MoveUntypedVector>()
-    );
-    // Safety: both repr(c) with same layout, probably ok
-    let mv: &'mv MoveUntypedVector = unsafe { mem::transmute(mv) };
-    unsafe { MoveBorrowedRustVec::new(mv) }
 }
 
 pub unsafe fn move_vec_to_rust_vec<T>(mv: MoveUntypedVector) -> Vec<T> {

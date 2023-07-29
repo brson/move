@@ -436,6 +436,22 @@ impl<'mv> MoveBorrowedRustVecOfStructMut<'mv> {
     }
 }
 
+impl MoveByteVector {
+    pub unsafe fn as_rust_vec<'mv>(&'mv self) -> MoveBorrowedRustVec<'mv, u8> {
+        assert_eq!(
+            mem::size_of::<MoveByteVector>(),
+            mem::size_of::<MoveUntypedVector>()
+        );
+        assert_eq!(
+            mem::align_of::<MoveByteVector>(),
+            mem::align_of::<MoveUntypedVector>()
+        );
+        // Safety: both repr(c) with same layout, probably ok
+        let mv: &'mv MoveUntypedVector = mem::transmute(self);
+        MoveBorrowedRustVec::new(mv)
+    }
+}
+
 impl<'mv> TypedMoveBorrowedRustVec<'mv> {
     pub fn len(&self) -> u64 {
         let len = match self {
