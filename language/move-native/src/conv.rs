@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::rt_types::*;
-use alloc::vec::Vec;
 use core::{
     mem,
 };
@@ -26,22 +25,6 @@ pub const fn invalid_mut<T>(addr: usize) -> *mut T {
     // SAFETY: every valid integer is also a valid pointer (as long as you don't dereference that
     // pointer).
     unsafe { mem::transmute(addr) }
-}
-
-pub unsafe fn move_byte_vec_to_rust_vec(mv: MoveByteVector) -> Vec<u8> {
-    mv.into_rust_vec()
-}
-
-pub fn rust_vec_to_move_byte_vec(rv: Vec<u8>) -> MoveByteVector {
-    MoveByteVector::from_rust_vec(rv)
-}
-
-pub unsafe fn move_vec_to_rust_vec<T>(mv: MoveUntypedVector) -> Vec<T> {
-    mv.into_rust_vec()
-}
-
-pub fn rust_vec_to_move_vec<T>(rv: Vec<T>) -> MoveUntypedVector {
-    MoveUntypedVector::from_rust_vec(rv)
 }
 
 pub enum BorrowedTypedMoveValue<'mv> {

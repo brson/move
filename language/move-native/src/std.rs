@@ -67,7 +67,6 @@ mod event {
 
 mod hash {
     use crate::{
-        conv::{move_byte_vec_to_rust_vec, rust_vec_to_move_byte_vec},
         rt_types::*,
     };
     use sha2::{Digest, Sha256};
@@ -75,18 +74,18 @@ mod hash {
 
     #[export_name = "move_native_hash_sha2_256"]
     unsafe extern "C" fn sha2_256(ptr: MoveByteVector) -> MoveByteVector {
-        let rust_vec = move_byte_vec_to_rust_vec(ptr);
+        let rust_vec = ptr.into_rust_vec();
 
         let hash_vec = Sha256::digest(rust_vec.as_slice()).to_vec();
-        rust_vec_to_move_byte_vec(hash_vec)
+        MoveByteVector::from_rust_vec(hash_vec)
     }
 
     #[export_name = "move_native_hash_sha3_256"]
     unsafe extern "C" fn sha3_256(ptr: MoveByteVector) -> MoveByteVector {
-        let rust_vec = move_byte_vec_to_rust_vec(ptr);
+        let rust_vec = ptr.into_rust_vec();
 
         let hash_vec = Sha3_256::digest(rust_vec.as_slice()).to_vec();
-        rust_vec_to_move_byte_vec(hash_vec)
+        MoveByteVector::from_rust_vec(hash_vec)
     }
 }
 
@@ -100,7 +99,7 @@ mod signer {
 }
 
 pub(crate) mod string {
-    use crate::{conv::*, rt_types::*};
+    use crate::{rt_types::*};
     use core::str;
 
     #[export_name = "move_native_string_internal_check_utf8"]
@@ -133,7 +132,7 @@ pub(crate) mod string {
         let rust_str = str::from_utf8(&rust_vec).expect("invalid utf8");
 
         let sub_rust_vec = rust_str[i..j].as_bytes().to_vec();
-        rust_vec_to_move_byte_vec(sub_rust_vec)
+        MoveByteVector::from_rust_vec(sub_rust_vec)
     }
 
     #[export_name = "move_native_string_internal_index_of"]

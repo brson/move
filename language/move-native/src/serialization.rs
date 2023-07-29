@@ -18,7 +18,7 @@ fn borsh_from_slice<T: BorshDeserialize>(buf: &mut &[u8]) -> T {
 pub unsafe fn serialize(type_v: &MoveType, v: &AnyValue) -> MoveByteVector {
     let mut buf = Vec::new();
     serialize_to_buf(type_v, v, &mut buf);
-    rust_vec_to_move_byte_vec(buf)
+    MoveByteVector::from_rust_vec(buf)
 }
 
 unsafe fn serialize_to_buf(type_v: &MoveType, v: &AnyValue, buf: &mut Vec<u8>) {

@@ -77,7 +77,6 @@ pub const BPF_ALIGN_OF_U128: usize = 8;
 #[allow(clippy::type_complexity)]
 #[export_name = "move_rt_deserialize"]
 pub unsafe fn deserialize<'a>(input: *mut u8) -> (&'a [u8], &'a SolanaPubkey, MoveUntypedVector) {
-    use crate::conv::*;
     use alloc::vec::Vec;
     use core::mem::size_of;
     let mut offset: usize = 0;
@@ -167,6 +166,6 @@ pub unsafe fn deserialize<'a>(input: *mut u8) -> (&'a [u8], &'a SolanaPubkey, Mo
     (
         instruction_data,
         program_id,
-        rust_vec_to_move_vec::<SolanaAccountInfo>(accounts),
+        MoveUntypedVector::from_rust_vec::<SolanaAccountInfo>(accounts),
     )
 }

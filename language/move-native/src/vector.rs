@@ -130,22 +130,22 @@ impl MoveUntypedVector {
     /// Unsafe because `MoveType`'s fields are public.
     pub unsafe fn empty(type_r: &MoveType) -> MoveUntypedVector {
         match type_r.type_desc {
-            TypeDesc::Bool => rust_vec_to_move_vec::<bool>(Vec::new()),
-            TypeDesc::U8 => rust_vec_to_move_vec::<u8>(Vec::new()),
-            TypeDesc::U16 => rust_vec_to_move_vec::<u16>(Vec::new()),
-            TypeDesc::U32 => rust_vec_to_move_vec::<u32>(Vec::new()),
-            TypeDesc::U64 => rust_vec_to_move_vec::<u64>(Vec::new()),
-            TypeDesc::U128 => rust_vec_to_move_vec::<u128>(Vec::new()),
-            TypeDesc::U256 => rust_vec_to_move_vec::<U256>(Vec::new()),
-            TypeDesc::Address => rust_vec_to_move_vec::<MoveAddress>(Vec::new()),
-            TypeDesc::Signer => rust_vec_to_move_vec::<MoveSigner>(Vec::new()),
+            TypeDesc::Bool => MoveUntypedVector::from_rust_vec::<bool>(Vec::new()),
+            TypeDesc::U8 => MoveUntypedVector::from_rust_vec::<u8>(Vec::new()),
+            TypeDesc::U16 => MoveUntypedVector::from_rust_vec::<u16>(Vec::new()),
+            TypeDesc::U32 => MoveUntypedVector::from_rust_vec::<u32>(Vec::new()),
+            TypeDesc::U64 => MoveUntypedVector::from_rust_vec::<u64>(Vec::new()),
+            TypeDesc::U128 => MoveUntypedVector::from_rust_vec::<u128>(Vec::new()),
+            TypeDesc::U256 => MoveUntypedVector::from_rust_vec::<U256>(Vec::new()),
+            TypeDesc::Address => MoveUntypedVector::from_rust_vec::<MoveAddress>(Vec::new()),
+            TypeDesc::Signer => MoveUntypedVector::from_rust_vec::<MoveSigner>(Vec::new()),
             TypeDesc::Vector => {
                 // Safety: need correct alignment for the internal vector
                 // pointer of the outer vector, which is non-null even for
                 // an unallocated vector. `MoveUntypedVector` has the same
                 // size and alignment regardless of the type it contains, so
                 // no need to interpret the vector type.
-                rust_vec_to_move_vec::<MoveUntypedVector>(Vec::new())
+                MoveUntypedVector::from_rust_vec::<MoveUntypedVector>(Vec::new())
             }
             TypeDesc::Struct => unsafe {
                 // Safety: this gets pretty sketchy, and relies on internal
@@ -188,7 +188,7 @@ impl MoveUntypedVector {
                     length: 0,
                 }
             },
-            TypeDesc::Reference => rust_vec_to_move_vec::<MoveUntypedReference>(Vec::new()),
+            TypeDesc::Reference => MoveUntypedVector::from_rust_vec::<MoveUntypedReference>(Vec::new()),
         }
     }
 
@@ -199,15 +199,15 @@ impl MoveUntypedVector {
         let v = self;
         assert_eq!(v.length, 0);
         match type_ve.type_desc {
-            TypeDesc::Bool => drop(move_vec_to_rust_vec::<bool>(v)),
-            TypeDesc::U8 => drop(move_vec_to_rust_vec::<u8>(v)),
-            TypeDesc::U16 => drop(move_vec_to_rust_vec::<u16>(v)),
-            TypeDesc::U32 => drop(move_vec_to_rust_vec::<u32>(v)),
-            TypeDesc::U64 => drop(move_vec_to_rust_vec::<u64>(v)),
-            TypeDesc::U128 => drop(move_vec_to_rust_vec::<u128>(v)),
-            TypeDesc::U256 => drop(move_vec_to_rust_vec::<U256>(v)),
-            TypeDesc::Address => drop(move_vec_to_rust_vec::<MoveAddress>(v)),
-            TypeDesc::Signer => drop(move_vec_to_rust_vec::<MoveSigner>(v)),
+            TypeDesc::Bool => drop(v.into_rust_vec::<bool>()),
+            TypeDesc::U8 => drop(v.into_rust_vec::<u8>()),
+            TypeDesc::U16 => drop(v.into_rust_vec::<u16>()),
+            TypeDesc::U32 => drop(v.into_rust_vec::<u32>()),
+            TypeDesc::U64 => drop(v.into_rust_vec::<u64>()),
+            TypeDesc::U128 => drop(v.into_rust_vec::<u128>()),
+            TypeDesc::U256 => drop(v.into_rust_vec::<U256>()),
+            TypeDesc::Address => drop(v.into_rust_vec::<MoveAddress>()),
+            TypeDesc::Signer => drop(v.into_rust_vec::<MoveSigner>()),
             TypeDesc::Vector => {
                 // Safety: need the correct internal pointer alignment to
                 // deallocate; need the outer vector to be empty to avoid
@@ -215,7 +215,7 @@ impl MoveUntypedVector {
                 // MoveUntypedVector should have the same size/alignment
                 // regardless of the contained type, so no need to interpret
                 // the vector type.
-                drop(move_vec_to_rust_vec::<MoveUntypedVector>(v))
+                drop(v.into_rust_vec::<MoveUntypedVector>())
             }
             TypeDesc::Struct => {
                 // Safety: like in `empty` we want to deallocate here without
@@ -244,7 +244,7 @@ impl MoveUntypedVector {
                     alloc::alloc::dealloc(v.ptr, layout);
                 }
             }
-            TypeDesc::Reference => drop(move_vec_to_rust_vec::<MoveUntypedReference>(v)),
+            TypeDesc::Reference => drop(v.into_rust_vec::<MoveUntypedReference>()),
         }
     }
 }
