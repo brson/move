@@ -62,8 +62,12 @@
 
 use crate::{conv::*, rt_types::*};
 use alloc::vec::Vec;
-use core::{mem, ops::{Deref, DerefMut}, ptr};
-use core::marker::PhantomData;
+use core::{
+    marker::PhantomData,
+    mem,
+    ops::{Deref, DerefMut},
+    ptr,
+};
 
 pub struct MoveBorrowedRustVec<'mv, T> {
     inner: Vec<T>,
@@ -189,7 +193,9 @@ impl MoveUntypedVector {
                     length: 0,
                 }
             },
-            TypeDesc::Reference => MoveUntypedVector::from_rust_vec::<MoveUntypedReference>(Vec::new()),
+            TypeDesc::Reference => {
+                MoveUntypedVector::from_rust_vec::<MoveUntypedReference>(Vec::new())
+            }
         }
     }
 
@@ -317,9 +323,7 @@ impl<'mv, T> MoveBorrowedRustVec<'mv, T> {
 }
 
 impl<'mv, T> MoveBorrowedRustVecMut<'mv, T> {
-    pub unsafe fn new(
-        mv: &mut MoveUntypedVector,
-    ) -> MoveBorrowedRustVecMut<'_, T> {
+    pub unsafe fn new(mv: &mut MoveUntypedVector) -> MoveBorrowedRustVecMut<'_, T> {
         let rv = Vec::from_raw_parts(
             mv.ptr as *mut T,
             usize::try_from(mv.length).expect("overflow"),
@@ -399,19 +403,15 @@ impl<'mv> TypedMoveBorrowedRustVec<'mv> {
             TypeDesc::U64 => TypedMoveBorrowedRustVec::U64(MoveBorrowedRustVec::new(mv)),
             TypeDesc::U128 => TypedMoveBorrowedRustVec::U128(MoveBorrowedRustVec::new(mv)),
             TypeDesc::U256 => TypedMoveBorrowedRustVec::U256(MoveBorrowedRustVec::new(mv)),
-            TypeDesc::Address => {
-                TypedMoveBorrowedRustVec::Address(MoveBorrowedRustVec::new(mv))
-            }
-            TypeDesc::Signer => {
-                TypedMoveBorrowedRustVec::Signer(MoveBorrowedRustVec::new(mv))
-            }
+            TypeDesc::Address => TypedMoveBorrowedRustVec::Address(MoveBorrowedRustVec::new(mv)),
+            TypeDesc::Signer => TypedMoveBorrowedRustVec::Signer(MoveBorrowedRustVec::new(mv)),
             TypeDesc::Vector => TypedMoveBorrowedRustVec::Vector(
                 *(*type_.type_info).vector.element_type,
                 MoveBorrowedRustVec::new(mv),
             ),
-            TypeDesc::Struct => TypedMoveBorrowedRustVec::Struct(
-                MoveBorrowedRustVecOfStruct::new(type_, mv)
-            ),
+            TypeDesc::Struct => {
+                TypedMoveBorrowedRustVec::Struct(MoveBorrowedRustVecOfStruct::new(type_, mv))
+            }
             TypeDesc::Reference => TypedMoveBorrowedRustVec::Reference(
                 *(*type_.type_info).reference.element_type,
                 MoveBorrowedRustVec::new(mv),
@@ -428,25 +428,13 @@ impl<'mv> TypedMoveBorrowedRustVecMut<'mv> {
         mv: &'mv mut MoveUntypedVector,
     ) -> TypedMoveBorrowedRustVecMut<'mv> {
         match type_.type_desc {
-            TypeDesc::Bool => {
-                TypedMoveBorrowedRustVecMut::Bool(MoveBorrowedRustVecMut::new(mv))
-            }
+            TypeDesc::Bool => TypedMoveBorrowedRustVecMut::Bool(MoveBorrowedRustVecMut::new(mv)),
             TypeDesc::U8 => TypedMoveBorrowedRustVecMut::U8(MoveBorrowedRustVecMut::new(mv)),
-            TypeDesc::U16 => {
-                TypedMoveBorrowedRustVecMut::U16(MoveBorrowedRustVecMut::new(mv))
-            }
-            TypeDesc::U32 => {
-                TypedMoveBorrowedRustVecMut::U32(MoveBorrowedRustVecMut::new(mv))
-            }
-            TypeDesc::U64 => {
-                TypedMoveBorrowedRustVecMut::U64(MoveBorrowedRustVecMut::new(mv))
-            }
-            TypeDesc::U128 => {
-                TypedMoveBorrowedRustVecMut::U128(MoveBorrowedRustVecMut::new(mv))
-            }
-            TypeDesc::U256 => {
-                TypedMoveBorrowedRustVecMut::U256(MoveBorrowedRustVecMut::new(mv))
-            }
+            TypeDesc::U16 => TypedMoveBorrowedRustVecMut::U16(MoveBorrowedRustVecMut::new(mv)),
+            TypeDesc::U32 => TypedMoveBorrowedRustVecMut::U32(MoveBorrowedRustVecMut::new(mv)),
+            TypeDesc::U64 => TypedMoveBorrowedRustVecMut::U64(MoveBorrowedRustVecMut::new(mv)),
+            TypeDesc::U128 => TypedMoveBorrowedRustVecMut::U128(MoveBorrowedRustVecMut::new(mv)),
+            TypeDesc::U256 => TypedMoveBorrowedRustVecMut::U256(MoveBorrowedRustVecMut::new(mv)),
             TypeDesc::Address => {
                 TypedMoveBorrowedRustVecMut::Address(MoveBorrowedRustVecMut::new(mv))
             }
@@ -457,9 +445,9 @@ impl<'mv> TypedMoveBorrowedRustVecMut<'mv> {
                 *(*type_.type_info).vector.element_type,
                 MoveBorrowedRustVecMut::new(mv),
             ),
-            TypeDesc::Struct => TypedMoveBorrowedRustVecMut::Struct(
-                MoveBorrowedRustVecOfStructMut::new(type_, mv)
-            ),
+            TypeDesc::Struct => {
+                TypedMoveBorrowedRustVecMut::Struct(MoveBorrowedRustVecOfStructMut::new(type_, mv))
+            }
             TypeDesc::Reference => TypedMoveBorrowedRustVecMut::Reference(
                 *(*type_.type_info).reference.element_type,
                 MoveBorrowedRustVecMut::new(mv),
@@ -469,18 +457,24 @@ impl<'mv> TypedMoveBorrowedRustVecMut<'mv> {
 }
 
 impl<'mv> MoveBorrowedRustVecOfStruct<'mv> {
-    unsafe fn new(ty: &'mv MoveType, mv: &'mv MoveUntypedVector) -> MoveBorrowedRustVecOfStruct<'mv> {
+    unsafe fn new(
+        ty: &'mv MoveType,
+        mv: &'mv MoveUntypedVector,
+    ) -> MoveBorrowedRustVecOfStruct<'mv> {
         assert_eq!(ty.type_desc, TypeDesc::Struct);
         MoveBorrowedRustVecOfStruct {
             inner: mv,
             type_: &(*ty.type_info).struct_,
-            full_type: ty
+            full_type: ty,
         }
     }
 }
 
 impl<'mv> MoveBorrowedRustVecOfStructMut<'mv> {
-    unsafe fn new(ty: &'mv MoveType, mv: &'mv mut MoveUntypedVector) -> MoveBorrowedRustVecOfStructMut<'mv> {
+    unsafe fn new(
+        ty: &'mv MoveType,
+        mv: &'mv mut MoveUntypedVector,
+    ) -> MoveBorrowedRustVecOfStructMut<'mv> {
         assert_eq!(ty.type_desc, TypeDesc::Struct);
         MoveBorrowedRustVecOfStructMut {
             inner: mv,
@@ -502,7 +496,9 @@ impl<'mv> TypedMoveBorrowedRustVec<'mv> {
             TypedMoveBorrowedRustVec::Address(v) => v.len(),
             TypedMoveBorrowedRustVec::Signer(v) => v.len(),
             TypedMoveBorrowedRustVec::Vector(_t, v) => v.len(),
-            TypedMoveBorrowedRustVec::Struct(s) => usize::try_from(s.inner.length).expect("overflow"),
+            TypedMoveBorrowedRustVec::Struct(s) => {
+                usize::try_from(s.inner.length).expect("overflow")
+            }
             TypedMoveBorrowedRustVec::Reference(_t, v) => v.len(),
         };
 
@@ -546,33 +542,15 @@ impl<'mv> TypedMoveBorrowedRustVec<'mv> {
 
         use TypedMoveBorrowedRustVec as V;
         let is_eq = match (v1t, v2t) {
-            (V::Bool(rv1), V::Bool(rv2)) => {
-                rv1.deref().eq(rv2.deref())
-            }
-            (V::U8(rv1), V::U8(rv2)) => {
-                rv1.deref().eq(rv2.deref())
-            }
-            (V::U16(rv1), V::U16(rv2)) => {
-                rv1.deref().eq(rv2.deref())
-            }
-            (V::U32(rv1), V::U32(rv2)) => {
-                rv1.deref().eq(rv2.deref())
-            }
-            (V::U64(rv1), V::U64(rv2)) => {
-                rv1.deref().eq(rv2.deref())
-            }
-            (V::U128(rv1), V::U128(rv2)) => {
-                rv1.deref().eq(rv2.deref())
-            }
-            (V::U256(rv1), V::U256(rv2)) => {
-                rv1.deref().eq(rv2.deref())
-            }
-            (V::Address(rv1), V::Address(rv2)) => {
-                rv1.deref().eq(rv2.deref())
-            }
-            (V::Signer(rv1), V::Signer(rv2)) => {
-                rv1.deref().eq(rv2.deref())
-            }
+            (V::Bool(rv1), V::Bool(rv2)) => rv1.deref().eq(rv2.deref()),
+            (V::U8(rv1), V::U8(rv2)) => rv1.deref().eq(rv2.deref()),
+            (V::U16(rv1), V::U16(rv2)) => rv1.deref().eq(rv2.deref()),
+            (V::U32(rv1), V::U32(rv2)) => rv1.deref().eq(rv2.deref()),
+            (V::U64(rv1), V::U64(rv2)) => rv1.deref().eq(rv2.deref()),
+            (V::U128(rv1), V::U128(rv2)) => rv1.deref().eq(rv2.deref()),
+            (V::U256(rv1), V::U256(rv2)) => rv1.deref().eq(rv2.deref()),
+            (V::Address(rv1), V::Address(rv2)) => rv1.deref().eq(rv2.deref()),
+            (V::Signer(rv1), V::Signer(rv2)) => rv1.deref().eq(rv2.deref()),
             (v1t @ V::Vector(elt_t1, _mv1), v2t @ V::Vector(elt_t2, _mv2)) => {
                 assert_eq!(elt_t1.type_desc, elt_t2.type_desc);
                 assert!(v1_len == v2_len, "unexpected vec cmp lengths");
@@ -624,7 +602,9 @@ impl<'mv> TypedMoveBorrowedRustVecMut<'mv> {
             TypedMoveBorrowedRustVecMut::Address(v) => v.len(),
             TypedMoveBorrowedRustVecMut::Signer(v) => v.len(),
             TypedMoveBorrowedRustVecMut::Vector(_t, v) => v.len(),
-            TypedMoveBorrowedRustVecMut::Struct(s) => usize::try_from(s.inner.length).expect("overflow"),
+            TypedMoveBorrowedRustVecMut::Struct(s) => {
+                usize::try_from(s.inner.length).expect("overflow")
+            }
             TypedMoveBorrowedRustVecMut::Reference(_t, v) => v.len(),
         };
 
@@ -640,8 +620,12 @@ impl<'mv> TypedMoveBorrowedRustVecMut<'mv> {
             TypedMoveBorrowedRustVecMut::U64(ref mut v) => v.push(ptr::read(e as *const u64)),
             TypedMoveBorrowedRustVecMut::U128(ref mut v) => v.push(ptr::read(e as *const u128)),
             TypedMoveBorrowedRustVecMut::U256(ref mut v) => v.push(ptr::read(e as *const U256)),
-            TypedMoveBorrowedRustVecMut::Address(ref mut v) => v.push(ptr::read(e as *const MoveAddress)),
-            TypedMoveBorrowedRustVecMut::Signer(ref mut v) => v.push(ptr::read(e as *const MoveSigner)),
+            TypedMoveBorrowedRustVecMut::Address(ref mut v) => {
+                v.push(ptr::read(e as *const MoveAddress))
+            }
+            TypedMoveBorrowedRustVecMut::Signer(ref mut v) => {
+                v.push(ptr::read(e as *const MoveSigner))
+            }
             TypedMoveBorrowedRustVecMut::Vector(_t, ref mut v) => {
                 v.push(ptr::read(e as *const MoveUntypedVector))
             }
@@ -652,25 +636,42 @@ impl<'mv> TypedMoveBorrowedRustVecMut<'mv> {
         }
     }
 
-    pub fn borrow_mut(
-        &mut self,
-        i: u64,
-    ) -> *mut AnyValue {
+    pub fn borrow_mut(&mut self, i: u64) -> *mut AnyValue {
         unsafe {
             let i = usize::try_from(i).expect("usize");
             match self {
-                TypedMoveBorrowedRustVecMut::Bool(ref mut v) => &mut v[i] as *mut bool as *mut AnyValue,
+                TypedMoveBorrowedRustVecMut::Bool(ref mut v) => {
+                    &mut v[i] as *mut bool as *mut AnyValue
+                }
                 TypedMoveBorrowedRustVecMut::U8(ref mut v) => &mut v[i] as *mut u8 as *mut AnyValue,
-                TypedMoveBorrowedRustVecMut::U16(ref mut v) => &mut v[i] as *mut u16 as *mut AnyValue,
-                TypedMoveBorrowedRustVecMut::U32(ref mut v) => &mut v[i] as *mut u32 as *mut AnyValue,
-                TypedMoveBorrowedRustVecMut::U64(ref mut v) => &mut v[i] as *mut u64 as *mut AnyValue,
-                TypedMoveBorrowedRustVecMut::U128(ref mut v) => &mut v[i] as *mut u128 as *mut AnyValue,
-                TypedMoveBorrowedRustVecMut::U256(ref mut v) => &mut v[i] as *mut U256 as *mut AnyValue,
-                TypedMoveBorrowedRustVecMut::Address(ref mut v) => &mut v[i] as *mut MoveAddress as *mut AnyValue,
-                TypedMoveBorrowedRustVecMut::Signer(ref mut v) => &mut v[i] as *mut MoveSigner as *mut AnyValue,
-                TypedMoveBorrowedRustVecMut::Vector(_t, ref mut v) => &mut v[i] as *mut MoveUntypedVector as *mut AnyValue,
+                TypedMoveBorrowedRustVecMut::U16(ref mut v) => {
+                    &mut v[i] as *mut u16 as *mut AnyValue
+                }
+                TypedMoveBorrowedRustVecMut::U32(ref mut v) => {
+                    &mut v[i] as *mut u32 as *mut AnyValue
+                }
+                TypedMoveBorrowedRustVecMut::U64(ref mut v) => {
+                    &mut v[i] as *mut u64 as *mut AnyValue
+                }
+                TypedMoveBorrowedRustVecMut::U128(ref mut v) => {
+                    &mut v[i] as *mut u128 as *mut AnyValue
+                }
+                TypedMoveBorrowedRustVecMut::U256(ref mut v) => {
+                    &mut v[i] as *mut U256 as *mut AnyValue
+                }
+                TypedMoveBorrowedRustVecMut::Address(ref mut v) => {
+                    &mut v[i] as *mut MoveAddress as *mut AnyValue
+                }
+                TypedMoveBorrowedRustVecMut::Signer(ref mut v) => {
+                    &mut v[i] as *mut MoveSigner as *mut AnyValue
+                }
+                TypedMoveBorrowedRustVecMut::Vector(_t, ref mut v) => {
+                    &mut v[i] as *mut MoveUntypedVector as *mut AnyValue
+                }
                 TypedMoveBorrowedRustVecMut::Struct(ref mut s) => s.get_mut(i),
-                TypedMoveBorrowedRustVecMut::Reference(_t, ref mut v) => &mut v[i] as *mut MoveUntypedReference as *mut AnyValue,
+                TypedMoveBorrowedRustVecMut::Reference(_t, ref mut v) => {
+                    &mut v[i] as *mut MoveUntypedReference as *mut AnyValue
+                }
             }
         }
     }

@@ -2,8 +2,10 @@
 // Copyright (c) The Move Contributors
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::rt_types::{AnyValue, MoveType, MoveUntypedVector, SolanaAccountInfo, SolanaPubkey};
-use crate::vector::{TypedMoveBorrowedRustVec, TypedMoveBorrowedRustVecMut};
+use crate::{
+    rt_types::{AnyValue, MoveType, MoveUntypedVector, SolanaAccountInfo, SolanaPubkey},
+    vector::{TypedMoveBorrowedRustVec, TypedMoveBorrowedRustVecMut},
+};
 
 #[export_name = "move_rt_abort"]
 extern "C" fn abort(code: u64) -> ! {

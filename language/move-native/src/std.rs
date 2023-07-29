@@ -66,9 +66,7 @@ mod event {
 }
 
 mod hash {
-    use crate::{
-        rt_types::*,
-    };
+    use crate::rt_types::*;
     use sha2::{Digest, Sha256};
     use sha3::Sha3_256;
 
@@ -99,7 +97,7 @@ mod signer {
 }
 
 pub(crate) mod string {
-    use crate::{rt_types::*};
+    use crate::rt_types::*;
     use core::str;
 
     #[export_name = "move_native_string_internal_check_utf8"]
@@ -153,8 +151,7 @@ pub(crate) mod string {
 }
 
 mod type_name {
-    use crate::rt_types::*;
-    use crate::vector::MoveBorrowedRustVecMut;
+    use crate::{rt_types::*, vector::MoveBorrowedRustVecMut};
 
     #[export_name = "move_native_type_name_get"]
     unsafe extern "C" fn get(type_: &MoveType) -> TypeName {
@@ -191,8 +188,10 @@ mod unit_test {
 }
 
 mod vector {
-    use crate::rt_types::*;
-    use crate::vector::{TypedMoveBorrowedRustVec, TypedMoveBorrowedRustVecMut};
+    use crate::{
+        rt_types::*,
+        vector::{TypedMoveBorrowedRustVec, TypedMoveBorrowedRustVecMut},
+    };
 
     // Safety: Even empty Rust vectors have non-null buffer pointers,
     // which must be correctly aligned. This function crates empty Rust vecs

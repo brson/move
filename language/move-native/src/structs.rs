@@ -2,9 +2,8 @@
 // Copyright (c) The Move Contributors
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::rt_types::*;
+use crate::{rt_types::*, vector::TypedMoveBorrowedRustVec};
 use core::slice;
-use crate::vector::TypedMoveBorrowedRustVec;
 
 pub unsafe fn walk_fields<'mv>(
     info: &'mv StructTypeInfo,

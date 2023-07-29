@@ -2,13 +2,8 @@
 // Copyright (c) The Move Contributors
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::rt_types::*;
-use core::{
-    mem,
-};
-use crate::vector::{
-    TypedMoveBorrowedRustVec,
-};
+use crate::{rt_types::*, vector::TypedMoveBorrowedRustVec};
+use core::mem;
 
 /// This is a placeholder for the unstable `ptr::invalid_mut`.
 ///
