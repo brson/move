@@ -222,10 +222,13 @@
 //!   - examples: `pop_back`
 //!
 //!
-//! # Panic handling
+//! # Panic handling and safety
 //!
 //! This crate does not handle panics at the FFI boundary. When used in a
 //! runtime context it should be compiled such that panics trigger an abort.
+//!
+//! This code has not been scrutinized for panic safety, and some code paths
+//! rely on destructors for correctness.
 //!
 //!
 //! # References
