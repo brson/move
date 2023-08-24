@@ -30,6 +30,8 @@ pub impl<'a> FunctionEnvExt for mm::FunctionEnv<'a> {
             for ty in tyvec {
                 name += &format!("_{}", ty.display(&self.get_type_display_ctx()))
             }
+            let addr_str = self.module_env.self_address().short_str_lossless();
+            name += &format!("_{addr_str}");
             name.replace([':', '<', '>'], "_").replace(", ", "_")
         }
     }
