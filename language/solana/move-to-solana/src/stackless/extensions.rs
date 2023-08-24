@@ -21,19 +21,27 @@ pub impl<'a> ModuleEnvExt for mm::ModuleEnv<'a> {
 #[extension_trait]
 pub impl<'a> FunctionEnvExt for mm::FunctionEnv<'a> {
     fn llvm_symbol_name(&self, tyvec: &[mty::Type]) -> String {
-        let mut name = self.get_full_name_str();
-        if name == "<SELF>::<SELF>" {
+        let mv_full_name = self.get_full_name_str();
+        if mv_full_name == "<SELF>::<SELF>" {
             // fixme move-model names script fns "<SELF>".
             // we might want to preserve the actual names
             "main".to_string()
         } else {
-            for ty in tyvec {
-                name += &format!("_{}", ty.display(&self.get_type_display_ctx()))
-            }
+            let name = self.llvm_symbol_name_basic(tyvec);
             let addr_str = self.module_env.self_address().short_str_lossless();
-            name += &format!("_{addr_str}");
-            name.replace([':', '<', '>'], "_").replace(", ", "_")
+            format!("{name}_{addr_str}")
         }
+    }
+
+    // This function exists to support naming of the selected entry point
+    // in emit_solana_entrypoint. Most callers should use `llvm_symbol_name`.
+    // It is likely that the naming of entry points will change.
+    fn llvm_symbol_name_basic(&self, tyvec: &[mty::Type]) -> String {
+        let mut name = self.get_full_name_str();
+        for ty in tyvec {
+            name += &format!("_{}", ty.display(&self.get_type_display_ctx()))
+        }
+        name.replace([':', '<', '>'], "_").replace(", ", "_")
     }
 
     /// Native functions follow their own naming convention
