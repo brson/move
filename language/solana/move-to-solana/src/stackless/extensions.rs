@@ -122,6 +122,8 @@ pub impl TypeExt for mty::Type {
 pub impl<'a> StructEnvExt for mm::StructEnv<'a> {
     fn ll_struct_name_from_raw_name(&self, tys: &[mty::Type]) -> String {
         let raw_name = self.struct_raw_type_name(tys);
+        let addr_str = self.module_env.self_address().short_str_lossless();
+        let raw_name = format!("{raw_name}_{addr_str}");
         let xs = raw_name.replace([':', '<', '>'], "_").replace(", ", ".");
         format!("struct.{}", xs)
     }
