@@ -133,6 +133,7 @@ struct PlatformTools {
     rustc: PathBuf,
     cargo: PathBuf,
     lld: PathBuf,
+    objcopy: PathBuf,
 }
 
 fn get_sbf_tools() -> anyhow::Result<PlatformTools> {
@@ -152,6 +153,9 @@ fn get_sbf_tools() -> anyhow::Result<PlatformTools> {
             .join("rust/bin/cargo")
             .with_extension(std::env::consts::EXE_EXTENSION),
         lld: sbf_tools_root.join("llvm/bin/ld.lld"),
+        objcopy: sbf_tools_root
+            .join("llvm/bin/llvm-objcopy")
+            .with_extension(std::env::consts::EXE_EXTENSION),
     };
 
     if !sbf_tools.clang.exists() {
@@ -165,6 +169,9 @@ fn get_sbf_tools() -> anyhow::Result<PlatformTools> {
     }
     if !sbf_tools.lld.exists() {
         anyhow::bail!("no lld bin at {}", sbf_tools.lld.display());
+    }
+    if !sbf_tools.objcopy.exists() {
+        anyhow::bail!("no objcopy bin at {}", sbf_tools.objcopy.display());
     }
 
     Ok(sbf_tools)
@@ -286,15 +293,32 @@ fn link_object_files(
 
     cmd.arg(&runtime.archive_file);
 
-    let output = cmd.output()?;
-    if !output.status.success() {
+    let cmd_output = cmd.output()?;
+    if !cmd_output.status.success() {
         anyhow::bail!(
             "linking with lld failed. stderr:\n\n{}",
-            String::from_utf8_lossy(&output.stderr)
+            String::from_utf8_lossy(&cmd_output.stderr)
         );
     }
 
-    Ok(output_dylib)
+    // Strip the binaries otherwise symbols may be too long to
+    // load into rbpf.
+    let output_dylib_stripped = test_plan.build_dir.join("output-stripped.so");
+
+    let cmd_output = Command::new(&sbf_tools.objcopy)
+        .arg("--strip-all")
+        .arg(&output_dylib)
+        .arg(&output_dylib_stripped)
+        .output()?;
+
+    if !cmd_output.status.success() {
+        anyhow::bail!(
+            "stripping with objcopy failed. stderr:\n\n{}",
+            String::from_utf8_lossy(&cmd_output.stderr)
+        );
+    }
+
+    Ok(output_dylib_stripped)
 }
 
 fn load_program<'a>(
