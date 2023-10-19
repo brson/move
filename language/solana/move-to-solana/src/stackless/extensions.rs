@@ -237,3 +237,46 @@ pub impl SignatureTokenExt for SignatureToken {
         };
     }
 }
+
+#[test]
+fn test_symbol_name() {
+    use move_compiler::shared::PackagePaths;
+    use move_core_types::{
+        account_address::AccountAddress,
+        identifier::{IdentStr, Identifier},
+        language_storage::ModuleId,
+    };
+    use move_model::run_model_builder;
+    use std::{collections::BTreeMap, path::PathBuf};
+
+    let model = {
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        let manifest_dir = PathBuf::from(manifest_dir);
+        let move_path = "../../tools/move-mv-llvm-compiler/tests/rbpf-tests/call-local.move";
+        let move_path = manifest_dir.join(move_path);
+
+        let named_address_map: BTreeMap<String, _> = BTreeMap::new();
+
+        let sources = vec![PackagePaths {
+            name: None,
+            paths: vec![move_path.to_string_lossy().to_string()],
+            named_address_map,
+        }];
+
+        run_model_builder(sources, vec![]).unwrap()
+    };
+
+    let fun = model
+        .find_function_by_language_storage_id_name(
+            &ModuleId::new(
+                AccountAddress::from_hex_literal("0x101").unwrap(),
+                Identifier::new("foo").unwrap(),
+            ),
+            IdentStr::new("a").unwrap(),
+        )
+        .unwrap();
+
+    let symbol = fun.llvm_symbol_name_full(&[mty::Type::Primitive(mty::PrimitiveType::Bool)]);
+
+    assert_eq!(symbol, "0000000000000101_foo_a_7JBHPr3AYTvPmP");
+}
