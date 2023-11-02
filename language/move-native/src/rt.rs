@@ -45,8 +45,17 @@ unsafe extern "C" fn vec_cmp_eq(
 }
 
 #[export_name = "move_rt_str_cmp_eq"]
-unsafe fn str_cmp_eq(s1: &str, s2: &str) -> bool {
-    *s1 == *s2
+unsafe extern "C" fn str_cmp_eq(
+    s1_ptr: *const u8,
+    s1_len: u64,
+    s2_ptr: *const u8,
+    s2_len: u64,
+) -> bool {
+    let s1 = core::slice::from_raw_parts(s1_ptr, usize::try_from(s1_len).expect("usize"));
+    let s1 = core::str::from_utf8_unchecked(s1); // assume utf8
+    let s2 = core::slice::from_raw_parts(s2_ptr, usize::try_from(s2_len).expect("usize"));
+    let s2 = core::str::from_utf8_unchecked(s2); // assume utf8
+    s1 == s2
 }
 
 #[export_name = "move_rt_struct_cmp_eq"]
