@@ -64,10 +64,23 @@ unsafe extern "C" fn struct_cmp_eq(type_ve: &MoveType, s1: &AnyValue, s2: &AnyVa
 }
 
 /// Maximum number of bytes a program may add to an account during a single realloc
-pub const MAX_PERMITTED_DATA_INCREASE: usize = 1_024 * 10;
+const MAX_PERMITTED_DATA_INCREASE: usize = 1_024 * 10;
 
 /// `assert_eq(std::mem::align_of::<u128>(), 8)` is true for BPF but not for some host machines
-pub const BPF_ALIGN_OF_U128: usize = 8;
+const BPF_ALIGN_OF_U128: usize = 8;
+
+#[repr(C)]
+struct DeserializeResult<'a> {
+    instruction_data: Slice,
+    program_id: &'a SolanaPubkey,
+    account_info: MoveUntypedVector, // of SolanaAccountInfo
+}
+
+#[repr(C)]
+struct Slice {
+    ptr: *const u8,
+    len: u64,
+}
 
 /// Deserialize the input arguments in encoded in borsh
 /// https://github.com/solana-labs/solana/blob/master/sdk/program/src/lib.rs
@@ -86,7 +99,7 @@ pub const BPF_ALIGN_OF_U128: usize = 8;
 #[allow(clippy::arithmetic_side_effects)]
 #[allow(clippy::type_complexity)]
 #[export_name = "move_rt_deserialize"]
-pub unsafe fn deserialize<'a>(input: *mut u8) -> (&'a [u8], &'a SolanaPubkey, MoveUntypedVector) {
+unsafe extern "C" fn deserialize<'a>(input: *mut u8) -> DeserializeResult<'a> {
     use alloc::vec::Vec;
     use core::mem::size_of;
     let mut offset: usize = 0;
@@ -173,9 +186,12 @@ pub unsafe fn deserialize<'a>(input: *mut u8) -> (&'a [u8], &'a SolanaPubkey, Mo
 
     let program_id: &SolanaPubkey = &*(input.add(offset) as *const SolanaPubkey);
 
-    (
-        instruction_data,
+    DeserializeResult {
+        instruction_data: Slice {
+            ptr: instruction_data.as_ptr(),
+            len: u64::try_from(instruction_data.len()).expect("u64"),
+        },
         program_id,
-        MoveUntypedVector::from_rust_vec::<SolanaAccountInfo>(accounts),
-    )
+        account_info: MoveUntypedVector::from_rust_vec::<SolanaAccountInfo>(accounts),
+    }
 }
