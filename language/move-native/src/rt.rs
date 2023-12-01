@@ -195,3 +195,101 @@ unsafe extern "C" fn deserialize<'a>(input: *mut u8) -> DeserializeResult<'a> {
         account_info: MoveUntypedVector::from_rust_vec::<SolanaAccountInfo>(accounts),
     }
 }
+
+use crate::rt_types::*;
+use crate::vector::*;
+
+#[export_name = "move_rt_move_from"]
+unsafe extern "C" fn move_from<'mv>(
+    program_id: &SolanaPubkey,
+    storage_program_id: &SolanaPubkey,
+    accounts: &MoveBorrowedRustVec<'mv, SolanaAccountInfo>,
+    address: &MoveAddress,
+    type_: &MoveType,
+    outptr: *mut AnyValue,
+) {
+    crate::storage::move_from(
+        program_id,
+        storage_program_id,
+        accounts,
+        address,
+        type_,
+        outptr,
+    )
+}
+
+#[export_name = "move_rt_move_to"]
+unsafe extern "C" fn move_to<'mv>(
+    program_id: &SolanaPubkey,
+    storage_program_id: &SolanaPubkey,
+    accounts: &MoveBorrowedRustVec<'mv, SolanaAccountInfo>,
+    address: &MoveAddress,
+    type_: &MoveType,
+    ptr: *mut AnyValue,
+) {
+    crate::storage::move_to(
+        program_id,
+        storage_program_id,
+        accounts,
+        address,
+        type_,
+        ptr,
+    )
+}
+
+#[export_name = "move_rt_borrow_global"]
+unsafe extern "C" fn borrow_global<'mv>(
+    program_id: &SolanaPubkey,
+    storage_program_id: &SolanaPubkey,
+    accounts: &MoveBorrowedRustVec<'mv, SolanaAccountInfo>,
+    address: &MoveAddress,
+    type_: &MoveType,
+    outptr: *mut AnyValue,
+) {
+    crate::storage::borrow_global(
+        program_id,
+        storage_program_id,
+        accounts,
+        address,
+        type_,
+        outptr,
+    )
+}
+
+#[export_name = "move_rt_borrow_global_mut"]
+unsafe extern "C" fn borrow_global_mut<'mv>(
+    program_id: &SolanaPubkey,
+    storage_program_id: &SolanaPubkey,
+    accounts: &MoveBorrowedRustVec<'mv, SolanaAccountInfo>,
+    address: &MoveAddress,
+    type_: &MoveType,
+    outptr: *mut AnyValue,
+) {
+    crate::storage::borrow_global_mut(
+        program_id,
+        storage_program_id,
+        accounts,
+        address,
+        type_,
+        outptr,
+    )
+}
+
+#[export_name = "move_rt_borrow_global_mut_commit"]
+unsafe extern "C" fn borrow_global_mut_commit<'mv>(
+    program_id: &SolanaPubkey,
+    storage_program_id: &SolanaPubkey,
+    accounts: &MoveBorrowedRustVec<'mv, SolanaAccountInfo>,
+    address: &MoveAddress,
+    type_: &MoveType,
+    ptr: *mut AnyValue,
+) {
+    crate::storage::borrow_global_mut_commit(
+        program_id,
+        storage_program_id,
+        accounts,
+        address,
+        type_,
+        ptr,
+    )
+}

@@ -60,6 +60,8 @@ members = [
     "language/move-vm/types",
     "language/solana/llvm-extra-sys",
     "language/solana/move-to-solana",
+    "language/solana/storage-program",
+    "language/solana/storage-program-shared",
     "language/testing-infra/module-generation",
     "language/testing-infra/test-generation",
     "language/testing-infra/transactional-test-runner",

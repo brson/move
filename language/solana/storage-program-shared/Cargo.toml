@@ -1,0 +1,17 @@
+[package]
+name = "move-solana-storage-program-shared"
+version = "0.0.1"
+edition = "2021"
+authors = ["Diem Association <opensource@diem.com>"]
+description = "Storage program for Move running on Solana"
+repository = "https://github.com/diem/diem"
+homepage = "https://diem.com"
+license = "Apache-2.0"
+publish = false
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+borsh = { version = "0.10.3", default-features = false }
+solana-program = { version = "1.17.6" }

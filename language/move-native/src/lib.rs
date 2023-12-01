@@ -275,5 +275,7 @@ mod target_defs;
 /// support for the `bcs::to_bytes` standard library function.
 mod serialization;
 
+mod storage;
+
 #[cfg(test)]
 mod tests;
