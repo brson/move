@@ -1,4 +1,4 @@
-use solana_program::pubkey::Pubkey as SolanaPubkey;
+use solana_program::pubkey::Pubkey;
 
 pub const ACCOUNT_ADDRESS_LENGTH: usize = 32;
 
@@ -32,7 +32,7 @@ pub enum Command {
 ///   - derivation: (["admin"], program_id)
 #[derive(borsh::BorshSerialize, borsh::BorshDeserialize)]
 pub struct InitCommand {
-    pub admin_account: SolanaPubkey,
+    pub admin_account: Pubkey,
 }
 
 /// Authorize another program to use the storage program.
@@ -48,7 +48,7 @@ pub struct InitCommand {
 ///   - derivation: (["program-auth"], program_id)
 #[derive(borsh::BorshSerialize, borsh::BorshDeserialize)]
 pub struct AuthorizeCommand {
-    pub authorized_program_id: SolanaPubkey,
+    pub authorized_program_id: Pubkey,
 }
 
 /// # Accounts
@@ -63,7 +63,7 @@ pub struct AuthorizeCommand {
 ///   - derivation: ([self.address, self.type_hash], program_id)
 #[derive(borsh::BorshSerialize, borsh::BorshDeserialize)]
 pub struct MoveToCommand {
-    pub calling_program_id: SolanaPubkey,
+    pub calling_program_id: Pubkey,
     pub address: MoveAddress,
     pub type_hash: MoveTypeHash,
     pub value: Vec<u8>,
@@ -81,7 +81,7 @@ pub struct MoveToCommand {
 ///   - derivation: ([self.address, self.type_hash], program_id)
 #[derive(borsh::BorshSerialize, borsh::BorshDeserialize)]
 pub struct MoveFromCommand {
-    pub calling_program_id: SolanaPubkey,
+    pub calling_program_id: Pubkey,
     pub address: MoveAddress,
     pub type_hash: MoveTypeHash,
 }
@@ -98,7 +98,7 @@ pub struct MoveFromCommand {
 ///   - derivation: ([self.address, self.type_hash], program_id)
 #[derive(borsh::BorshSerialize, borsh::BorshDeserialize)]
 pub struct BorrowGlobalMutCommitCommand {
-    pub calling_program_id: SolanaPubkey,
+    pub calling_program_id: Pubkey,
     pub address: MoveAddress,
     pub type_hash: MoveTypeHash,
     pub value: Vec<u8>,
