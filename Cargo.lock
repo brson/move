@@ -4574,6 +4574,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "move-solana-storage-test-program"
+version = "0.0.1"
+dependencies = [
+ "borsh 0.10.3",
+ "extension-trait",
+ "move-solana-storage-program-shared",
+ "solana-program 1.17.6",
+]
+
+[[package]]
 name = "move-stackless-bytecode"
 version = "0.1.0"
 dependencies = [

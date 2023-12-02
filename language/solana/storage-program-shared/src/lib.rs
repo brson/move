@@ -103,3 +103,10 @@ pub struct BorrowGlobalMutCommitCommand {
     pub type_hash: MoveTypeHash,
     pub value: Vec<u8>,
 }
+
+pub mod test {
+    #[derive(borsh::BorshSerialize, borsh::BorshDeserialize)]
+    pub enum Command {
+        Foo
+    }
+}

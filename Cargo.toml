@@ -62,6 +62,7 @@ members = [
     "language/solana/move-to-solana",
     "language/solana/storage-program",
     "language/solana/storage-program-shared",
+    "language/solana/storage-test-program",
     "language/testing-infra/module-generation",
     "language/testing-infra/test-generation",
     "language/testing-infra/transactional-test-runner",
