@@ -105,8 +105,35 @@ pub struct BorrowGlobalMutCommitCommand {
 }
 
 pub mod test {
+    use super::MoveAddress;
+
     #[derive(borsh::BorshSerialize, borsh::BorshDeserialize)]
     pub enum Command {
-        Foo
+        MoveIntTo(MoveIntToCommand),
+        MoveIntFrom(MoveIntFromCommand),
+        MoveIntFromTo(MoveIntFromToCommand),
+        BorrowMutateInt(BorrowIntIncrementCommand),
+    }
+
+    #[derive(borsh::BorshSerialize, borsh::BorshDeserialize)]
+    pub struct MoveIntToCommand {
+        pub to_address: MoveAddress,
+        pub value: u32,
+    }
+
+    #[derive(borsh::BorshSerialize, borsh::BorshDeserialize)]
+    pub struct MoveIntFromCommand {
+        pub from_address: MoveAddress,
+    }
+
+    #[derive(borsh::BorshSerialize, borsh::BorshDeserialize)]
+    pub struct MoveIntFromToCommand {
+        pub from_address: MoveAddress,
+        pub to_address: MoveAddress,
+    }
+
+    #[derive(borsh::BorshSerialize, borsh::BorshDeserialize)]
+    pub struct BorrowIntIncrementCommand {
+        pub address: MoveAddress,
     }
 }
