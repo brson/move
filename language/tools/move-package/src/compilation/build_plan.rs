@@ -411,7 +411,7 @@ impl BuildPlan {
         let root_package = &self.resolution_graph.package_table[&self.root];
         let project_root = match &self.resolution_graph.build_options.install_dir {
             Some(under_path) => under_path.clone(),
-            None => self.resolution_graph.root_package_path.clone(),
+            None => todo!(), //self.resolution_graph.root_package_path.clone(),
         };
         let build_root_path = project_root
             .join(CompiledPackageLayout::Root.path())

@@ -138,7 +138,6 @@ pub fn resolve_dependency(
         architecture: Some(Architecture::Move),
         fetch_deps_only: true,
         skip_fetch_latest_git_deps: true,
-        bytecode_version: None, // Option<u32>
     };
 
     let rerooted_path = reroot_path(Some(target_path))?;
@@ -290,7 +289,12 @@ fn parse_package_manifest(
     dep_name: &PackageName,
     mut root_path: PathBuf,
 ) -> Result<(SourceManifest, PathBuf)> {
-    root_path.push(local_path(&dep.kind));
+    match dep {
+        Dependency::Internal(dep) => {
+            root_path.push(local_path(&dep.kind));
+        }
+        _ => todo!()
+    }
     let manifest_path = root_path.join(SourcePackageLayout::Manifest.path());
 
     let contents = fs::read_to_string(&manifest_path).with_context(|| {
@@ -311,11 +315,16 @@ fn download_and_update_if_remote(
     dep: &Dependency,
     _skip_fetch_latest_git_deps: bool,
 ) -> Result<()> {
-    match &dep.kind {
-        DependencyKind::Local(_) => Ok(()),
-        _ => Err(anyhow::anyhow!(
-            "Only local dependency allowed in manifest (.toml) file"
-        )),
+    match dep {
+        Dependency::Internal(dep) => {
+            match &dep.kind {
+                DependencyKind::Local(_) => Ok(()),
+                _ => Err(anyhow::anyhow!(
+                    "Only local dependency allowed in manifest (.toml) file"
+                )),
+            }
+        }
+        _ => todo!()
     }
 }
 

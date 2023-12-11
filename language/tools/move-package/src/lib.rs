@@ -195,9 +195,8 @@ impl BuildConfig {
         // resolution graph diagnostics are only needed for CLI commands so ignore them by passing a
         // vector as the writer
         let resolved_graph = self.resolution_graph_for_package(path, &mut Vec::new())?;
-        let mutx = PackageLock::lock();
+        let _mutx = PackageLock::lock();
         let ret = BuildPlan::create(resolved_graph)?.compile_solana(writer);
-        mutx.unlock();
         ret
     }
 
