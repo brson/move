@@ -41,6 +41,8 @@ pub enum Architecture {
     AsyncMove,
 
     Ethereum,
+
+    Solana,
 }
 
 impl fmt::Display for Architecture {
@@ -51,6 +53,8 @@ impl fmt::Display for Architecture {
             Self::AsyncMove => write!(f, "async-move"),
 
             Self::Ethereum => write!(f, "ethereum"),
+
+            Self::Solana => write!(f, "solana"),
         }
     }
 }
@@ -62,6 +66,8 @@ impl Architecture {
             Self::AsyncMove,
             #[cfg(feature = "evm-backend")]
             Self::Ethereum,
+            #[cfg(feature = "solana-backend")]
+            Self::Solana,
         ])
     }
 
@@ -72,6 +78,8 @@ impl Architecture {
             "async-move" => Self::AsyncMove,
 
             "ethereum" => Self::Ethereum,
+
+            "solana" => Self::Solana,
 
             _ => {
                 let supported_architectures = Self::all()
@@ -180,6 +188,17 @@ impl BuildConfig {
         let resolved_graph = self.resolution_graph_for_package(path, &mut Vec::new())?;
         let _mutx = PackageLock::lock(); // held until function returns
         BuildPlan::create(resolved_graph)?.compile_evm(writer)
+    }
+
+    #[cfg(feature = "solana-backend")]
+    pub fn compile_package_solana<W: Write>(self, path: &Path, writer: &mut W) -> Result<()> {
+        // resolution graph diagnostics are only needed for CLI commands so ignore them by passing a
+        // vector as the writer
+        let resolved_graph = self.resolution_graph_for_package(path, &mut Vec::new())?;
+        let mutx = PackageLock::lock();
+        let ret = BuildPlan::create(resolved_graph)?.compile_solana(writer);
+        mutx.unlock();
+        ret
     }
 
     // NOTE: If there are no renamings, then the root package has the global resolution of all named
