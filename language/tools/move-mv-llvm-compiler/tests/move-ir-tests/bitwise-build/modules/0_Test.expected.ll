@@ -5,27 +5,6 @@ target triple = "sbf-solana-solana"
 
 declare i32 @memcmp(ptr, ptr, i64)
 
-define private i8 @"0000000000000100_Test_test_and_DFphxaoqiXYNDV"(i8 %0, i8 %1) {
-entry:
-  %local_0 = alloca i8, align 1
-  %local_1 = alloca i8, align 1
-  %local_2 = alloca i8, align 1
-  %local_3 = alloca i8, align 1
-  %local_4 = alloca i8, align 1
-  store i8 %0, ptr %local_0, align 1
-  store i8 %1, ptr %local_1, align 1
-  %load_store_tmp = load i8, ptr %local_0, align 1
-  store i8 %load_store_tmp, ptr %local_2, align 1
-  %load_store_tmp1 = load i8, ptr %local_1, align 1
-  store i8 %load_store_tmp1, ptr %local_3, align 1
-  %and_src_0 = load i8, ptr %local_2, align 1
-  %and_src_1 = load i8, ptr %local_3, align 1
-  %and_dst = and i8 %and_src_0, %and_src_1
-  store i8 %and_dst, ptr %local_4, align 1
-  %retval = load i8, ptr %local_4, align 1
-  ret i8 %retval
-}
-
 define private i8 @"0000000000000100_Test_test_or_ABgsHoLgySjeMj"(i8 %0, i8 %1) {
 entry:
   %local_0 = alloca i8, align 1
@@ -47,22 +26,64 @@ entry:
   ret i8 %retval
 }
 
-define private i128 @"0000000000000100_Test_test_shl128_FjsWYtVAK5ZT52"(i128 %0, i8 %1) {
+define private i8 @"0000000000000100_Test_test_and_DFphxaoqiXYNDV"(i8 %0, i8 %1) {
 entry:
-  %local_0 = alloca i128, align 8
+  %local_0 = alloca i8, align 1
   %local_1 = alloca i8, align 1
-  %local_2 = alloca i128, align 8
+  %local_2 = alloca i8, align 1
   %local_3 = alloca i8, align 1
-  %local_4 = alloca i128, align 8
-  store i128 %0, ptr %local_0, align 8
+  %local_4 = alloca i8, align 1
+  store i8 %0, ptr %local_0, align 1
   store i8 %1, ptr %local_1, align 1
-  %load_store_tmp = load i128, ptr %local_0, align 8
-  store i128 %load_store_tmp, ptr %local_2, align 8
+  %load_store_tmp = load i8, ptr %local_0, align 1
+  store i8 %load_store_tmp, ptr %local_2, align 1
   %load_store_tmp1 = load i8, ptr %local_1, align 1
   store i8 %load_store_tmp1, ptr %local_3, align 1
-  %shl_src_0 = load i128, ptr %local_2, align 8
+  %and_src_0 = load i8, ptr %local_2, align 1
+  %and_src_1 = load i8, ptr %local_3, align 1
+  %and_dst = and i8 %and_src_0, %and_src_1
+  store i8 %and_dst, ptr %local_4, align 1
+  %retval = load i8, ptr %local_4, align 1
+  ret i8 %retval
+}
+
+define private i8 @"0000000000000100_Test_test_xor_4csxK8UYp6BVr8"(i8 %0, i8 %1) {
+entry:
+  %local_0 = alloca i8, align 1
+  %local_1 = alloca i8, align 1
+  %local_2 = alloca i8, align 1
+  %local_3 = alloca i8, align 1
+  %local_4 = alloca i8, align 1
+  store i8 %0, ptr %local_0, align 1
+  store i8 %1, ptr %local_1, align 1
+  %load_store_tmp = load i8, ptr %local_0, align 1
+  store i8 %load_store_tmp, ptr %local_2, align 1
+  %load_store_tmp1 = load i8, ptr %local_1, align 1
+  store i8 %load_store_tmp1, ptr %local_3, align 1
+  %xor_src_0 = load i8, ptr %local_2, align 1
+  %xor_src_1 = load i8, ptr %local_3, align 1
+  %xor_dst = xor i8 %xor_src_0, %xor_src_1
+  store i8 %xor_dst, ptr %local_4, align 1
+  %retval = load i8, ptr %local_4, align 1
+  ret i8 %retval
+}
+
+define private i8 @"0000000000000100_Test_test_shl8_GAUo4HFL6n4cUQ"(i8 %0, i8 %1) {
+entry:
+  %local_0 = alloca i8, align 1
+  %local_1 = alloca i8, align 1
+  %local_2 = alloca i8, align 1
+  %local_3 = alloca i8, align 1
+  %local_4 = alloca i8, align 1
+  store i8 %0, ptr %local_0, align 1
+  store i8 %1, ptr %local_1, align 1
+  %load_store_tmp = load i8, ptr %local_0, align 1
+  store i8 %load_store_tmp, ptr %local_2, align 1
+  %load_store_tmp1 = load i8, ptr %local_1, align 1
+  store i8 %load_store_tmp1, ptr %local_3, align 1
+  %shl_src_0 = load i8, ptr %local_2, align 1
   %shl_src_1 = load i8, ptr %local_3, align 1
-  %rangecond = icmp uge i8 %shl_src_1, -128
+  %rangecond = icmp uge i8 %shl_src_1, 8
   br i1 %rangecond, label %then_bb, label %join_bb
 
 then_bb:                                          ; preds = %entry
@@ -70,11 +91,39 @@ then_bb:                                          ; preds = %entry
   unreachable
 
 join_bb:                                          ; preds = %entry
-  %zext_dst = zext i8 %shl_src_1 to i128
-  %shl_dst = shl i128 %shl_src_0, %zext_dst
-  store i128 %shl_dst, ptr %local_4, align 8
-  %retval = load i128, ptr %local_4, align 8
-  ret i128 %retval
+  %shl_dst = shl i8 %shl_src_0, %shl_src_1
+  store i8 %shl_dst, ptr %local_4, align 1
+  %retval = load i8, ptr %local_4, align 1
+  ret i8 %retval
+}
+
+define private i8 @"0000000000000100_Test_test_shr8_5uSFM3pVunbF5g"(i8 %0, i8 %1) {
+entry:
+  %local_0 = alloca i8, align 1
+  %local_1 = alloca i8, align 1
+  %local_2 = alloca i8, align 1
+  %local_3 = alloca i8, align 1
+  %local_4 = alloca i8, align 1
+  store i8 %0, ptr %local_0, align 1
+  store i8 %1, ptr %local_1, align 1
+  %load_store_tmp = load i8, ptr %local_0, align 1
+  store i8 %load_store_tmp, ptr %local_2, align 1
+  %load_store_tmp1 = load i8, ptr %local_1, align 1
+  store i8 %load_store_tmp1, ptr %local_3, align 1
+  %shr_src_0 = load i8, ptr %local_2, align 1
+  %shr_src_1 = load i8, ptr %local_3, align 1
+  %rangecond = icmp uge i8 %shr_src_1, 8
+  br i1 %rangecond, label %then_bb, label %join_bb
+
+then_bb:                                          ; preds = %entry
+  call void @move_rt_abort(i64 4017)
+  unreachable
+
+join_bb:                                          ; preds = %entry
+  %shr_dst = lshr i8 %shr_src_0, %shr_src_1
+  store i8 %shr_dst, ptr %local_4, align 1
+  %retval = load i8, ptr %local_4, align 1
+  ret i8 %retval
 }
 
 define private i32 @"0000000000000100_Test_test_shl32_BY8MnnQVbnAiqd"(i32 %0, i8 %1) {
@@ -103,6 +152,36 @@ join_bb:                                          ; preds = %entry
   %zext_dst = zext i8 %shl_src_1 to i32
   %shl_dst = shl i32 %shl_src_0, %zext_dst
   store i32 %shl_dst, ptr %local_4, align 4
+  %retval = load i32, ptr %local_4, align 4
+  ret i32 %retval
+}
+
+define private i32 @"0000000000000100_Test_test_shr32_FpQwVwgHroD4FB"(i32 %0, i8 %1) {
+entry:
+  %local_0 = alloca i32, align 4
+  %local_1 = alloca i8, align 1
+  %local_2 = alloca i32, align 4
+  %local_3 = alloca i8, align 1
+  %local_4 = alloca i32, align 4
+  store i32 %0, ptr %local_0, align 4
+  store i8 %1, ptr %local_1, align 1
+  %load_store_tmp = load i32, ptr %local_0, align 4
+  store i32 %load_store_tmp, ptr %local_2, align 4
+  %load_store_tmp1 = load i8, ptr %local_1, align 1
+  store i8 %load_store_tmp1, ptr %local_3, align 1
+  %shr_src_0 = load i32, ptr %local_2, align 4
+  %shr_src_1 = load i8, ptr %local_3, align 1
+  %rangecond = icmp uge i8 %shr_src_1, 32
+  br i1 %rangecond, label %then_bb, label %join_bb
+
+then_bb:                                          ; preds = %entry
+  call void @move_rt_abort(i64 4017)
+  unreachable
+
+join_bb:                                          ; preds = %entry
+  %zext_dst = zext i8 %shr_src_1 to i32
+  %shr_dst = lshr i32 %shr_src_0, %zext_dst
+  store i32 %shr_dst, ptr %local_4, align 4
   %retval = load i32, ptr %local_4, align 4
   ret i32 %retval
 }
@@ -137,95 +216,6 @@ join_bb:                                          ; preds = %entry
   ret i64 %retval
 }
 
-define private i8 @"0000000000000100_Test_test_shl8_GAUo4HFL6n4cUQ"(i8 %0, i8 %1) {
-entry:
-  %local_0 = alloca i8, align 1
-  %local_1 = alloca i8, align 1
-  %local_2 = alloca i8, align 1
-  %local_3 = alloca i8, align 1
-  %local_4 = alloca i8, align 1
-  store i8 %0, ptr %local_0, align 1
-  store i8 %1, ptr %local_1, align 1
-  %load_store_tmp = load i8, ptr %local_0, align 1
-  store i8 %load_store_tmp, ptr %local_2, align 1
-  %load_store_tmp1 = load i8, ptr %local_1, align 1
-  store i8 %load_store_tmp1, ptr %local_3, align 1
-  %shl_src_0 = load i8, ptr %local_2, align 1
-  %shl_src_1 = load i8, ptr %local_3, align 1
-  %rangecond = icmp uge i8 %shl_src_1, 8
-  br i1 %rangecond, label %then_bb, label %join_bb
-
-then_bb:                                          ; preds = %entry
-  call void @move_rt_abort(i64 4017)
-  unreachable
-
-join_bb:                                          ; preds = %entry
-  %shl_dst = shl i8 %shl_src_0, %shl_src_1
-  store i8 %shl_dst, ptr %local_4, align 1
-  %retval = load i8, ptr %local_4, align 1
-  ret i8 %retval
-}
-
-define private i128 @"0000000000000100_Test_test_shr128_6Uq2b5WWBuctcq"(i128 %0, i8 %1) {
-entry:
-  %local_0 = alloca i128, align 8
-  %local_1 = alloca i8, align 1
-  %local_2 = alloca i128, align 8
-  %local_3 = alloca i8, align 1
-  %local_4 = alloca i128, align 8
-  store i128 %0, ptr %local_0, align 8
-  store i8 %1, ptr %local_1, align 1
-  %load_store_tmp = load i128, ptr %local_0, align 8
-  store i128 %load_store_tmp, ptr %local_2, align 8
-  %load_store_tmp1 = load i8, ptr %local_1, align 1
-  store i8 %load_store_tmp1, ptr %local_3, align 1
-  %shr_src_0 = load i128, ptr %local_2, align 8
-  %shr_src_1 = load i8, ptr %local_3, align 1
-  %rangecond = icmp uge i8 %shr_src_1, -128
-  br i1 %rangecond, label %then_bb, label %join_bb
-
-then_bb:                                          ; preds = %entry
-  call void @move_rt_abort(i64 4017)
-  unreachable
-
-join_bb:                                          ; preds = %entry
-  %zext_dst = zext i8 %shr_src_1 to i128
-  %shr_dst = lshr i128 %shr_src_0, %zext_dst
-  store i128 %shr_dst, ptr %local_4, align 8
-  %retval = load i128, ptr %local_4, align 8
-  ret i128 %retval
-}
-
-define private i32 @"0000000000000100_Test_test_shr32_FpQwVwgHroD4FB"(i32 %0, i8 %1) {
-entry:
-  %local_0 = alloca i32, align 4
-  %local_1 = alloca i8, align 1
-  %local_2 = alloca i32, align 4
-  %local_3 = alloca i8, align 1
-  %local_4 = alloca i32, align 4
-  store i32 %0, ptr %local_0, align 4
-  store i8 %1, ptr %local_1, align 1
-  %load_store_tmp = load i32, ptr %local_0, align 4
-  store i32 %load_store_tmp, ptr %local_2, align 4
-  %load_store_tmp1 = load i8, ptr %local_1, align 1
-  store i8 %load_store_tmp1, ptr %local_3, align 1
-  %shr_src_0 = load i32, ptr %local_2, align 4
-  %shr_src_1 = load i8, ptr %local_3, align 1
-  %rangecond = icmp uge i8 %shr_src_1, 32
-  br i1 %rangecond, label %then_bb, label %join_bb
-
-then_bb:                                          ; preds = %entry
-  call void @move_rt_abort(i64 4017)
-  unreachable
-
-join_bb:                                          ; preds = %entry
-  %zext_dst = zext i8 %shr_src_1 to i32
-  %shr_dst = lshr i32 %shr_src_0, %zext_dst
-  store i32 %shr_dst, ptr %local_4, align 4
-  %retval = load i32, ptr %local_4, align 4
-  ret i32 %retval
-}
-
 define private i64 @"0000000000000100_Test_test_shr64_DBFfqGmnEJWtN8"(i64 %0, i8 %1) {
 entry:
   %local_0 = alloca i64, align 8
@@ -256,22 +246,22 @@ join_bb:                                          ; preds = %entry
   ret i64 %retval
 }
 
-define private i8 @"0000000000000100_Test_test_shr8_5uSFM3pVunbF5g"(i8 %0, i8 %1) {
+define private i128 @"0000000000000100_Test_test_shl128_FjsWYtVAK5ZT52"(i128 %0, i8 %1) {
 entry:
-  %local_0 = alloca i8, align 1
+  %local_0 = alloca i128, align 8
   %local_1 = alloca i8, align 1
-  %local_2 = alloca i8, align 1
+  %local_2 = alloca i128, align 8
   %local_3 = alloca i8, align 1
-  %local_4 = alloca i8, align 1
-  store i8 %0, ptr %local_0, align 1
+  %local_4 = alloca i128, align 8
+  store i128 %0, ptr %local_0, align 8
   store i8 %1, ptr %local_1, align 1
-  %load_store_tmp = load i8, ptr %local_0, align 1
-  store i8 %load_store_tmp, ptr %local_2, align 1
+  %load_store_tmp = load i128, ptr %local_0, align 8
+  store i128 %load_store_tmp, ptr %local_2, align 8
   %load_store_tmp1 = load i8, ptr %local_1, align 1
   store i8 %load_store_tmp1, ptr %local_3, align 1
-  %shr_src_0 = load i8, ptr %local_2, align 1
-  %shr_src_1 = load i8, ptr %local_3, align 1
-  %rangecond = icmp uge i8 %shr_src_1, 8
+  %shl_src_0 = load i128, ptr %local_2, align 8
+  %shl_src_1 = load i8, ptr %local_3, align 1
+  %rangecond = icmp uge i8 %shl_src_1, -128
   br i1 %rangecond, label %then_bb, label %join_bb
 
 then_bb:                                          ; preds = %entry
@@ -279,31 +269,41 @@ then_bb:                                          ; preds = %entry
   unreachable
 
 join_bb:                                          ; preds = %entry
-  %shr_dst = lshr i8 %shr_src_0, %shr_src_1
-  store i8 %shr_dst, ptr %local_4, align 1
-  %retval = load i8, ptr %local_4, align 1
-  ret i8 %retval
+  %zext_dst = zext i8 %shl_src_1 to i128
+  %shl_dst = shl i128 %shl_src_0, %zext_dst
+  store i128 %shl_dst, ptr %local_4, align 8
+  %retval = load i128, ptr %local_4, align 8
+  ret i128 %retval
 }
 
-define private i8 @"0000000000000100_Test_test_xor_4csxK8UYp6BVr8"(i8 %0, i8 %1) {
+define private i128 @"0000000000000100_Test_test_shr128_6Uq2b5WWBuctcq"(i128 %0, i8 %1) {
 entry:
-  %local_0 = alloca i8, align 1
+  %local_0 = alloca i128, align 8
   %local_1 = alloca i8, align 1
-  %local_2 = alloca i8, align 1
+  %local_2 = alloca i128, align 8
   %local_3 = alloca i8, align 1
-  %local_4 = alloca i8, align 1
-  store i8 %0, ptr %local_0, align 1
+  %local_4 = alloca i128, align 8
+  store i128 %0, ptr %local_0, align 8
   store i8 %1, ptr %local_1, align 1
-  %load_store_tmp = load i8, ptr %local_0, align 1
-  store i8 %load_store_tmp, ptr %local_2, align 1
+  %load_store_tmp = load i128, ptr %local_0, align 8
+  store i128 %load_store_tmp, ptr %local_2, align 8
   %load_store_tmp1 = load i8, ptr %local_1, align 1
   store i8 %load_store_tmp1, ptr %local_3, align 1
-  %xor_src_0 = load i8, ptr %local_2, align 1
-  %xor_src_1 = load i8, ptr %local_3, align 1
-  %xor_dst = xor i8 %xor_src_0, %xor_src_1
-  store i8 %xor_dst, ptr %local_4, align 1
-  %retval = load i8, ptr %local_4, align 1
-  ret i8 %retval
+  %shr_src_0 = load i128, ptr %local_2, align 8
+  %shr_src_1 = load i8, ptr %local_3, align 1
+  %rangecond = icmp uge i8 %shr_src_1, -128
+  br i1 %rangecond, label %then_bb, label %join_bb
+
+then_bb:                                          ; preds = %entry
+  call void @move_rt_abort(i64 4017)
+  unreachable
+
+join_bb:                                          ; preds = %entry
+  %zext_dst = zext i8 %shr_src_1 to i128
+  %shr_dst = lshr i128 %shr_src_0, %zext_dst
+  store i128 %shr_dst, ptr %local_4, align 8
+  %retval = load i128, ptr %local_4, align 8
+  ret i128 %retval
 }
 
 ; Function Attrs: cold noreturn

@@ -7,6 +7,41 @@ target triple = "sbf-solana-solana"
 
 declare i32 @memcmp(ptr, ptr, i64)
 
+define [32 x i8] @"0000000000000100_M3_use_address_val_EytLbxU1j6cfLn"([32 x i8] %0) {
+entry:
+  %local_0 = alloca [32 x i8], align 1
+  %local_1 = alloca [32 x i8], align 1
+  store [32 x i8] %0, ptr %local_0, align 1
+  %retval = load [32 x i8], ptr %local_0, align 1
+  ret [32 x i8] %retval
+}
+
+define [32 x i8] @"0000000000000100_M3_use_address_ref_9jcTfHHsGoQPVk"(ptr nonnull readonly %0) {
+entry:
+  %local_0 = alloca ptr, align 8
+  %local_1 = alloca ptr, align 8
+  %local_2 = alloca [32 x i8], align 1
+  store ptr %0, ptr %local_0, align 8
+  %load_store_tmp = load ptr, ptr %local_0, align 8
+  store ptr %load_store_tmp, ptr %local_1, align 8
+  %load_deref_store_tmp1 = load ptr, ptr %local_1, align 8
+  %load_deref_store_tmp2 = load [32 x i8], ptr %load_deref_store_tmp1, align 1
+  store [32 x i8] %load_deref_store_tmp2, ptr %local_2, align 1
+  %retval = load [32 x i8], ptr %local_2, align 1
+  ret [32 x i8] %retval
+}
+
+define ptr @"0000000000000100_M3_ret_address_ref_mH7xfp9W2TDBYv"(ptr nonnull readonly %0) {
+entry:
+  %local_0 = alloca ptr, align 8
+  %local_1 = alloca ptr, align 8
+  store ptr %0, ptr %local_0, align 8
+  %load_store_tmp = load ptr, ptr %local_0, align 8
+  store ptr %load_store_tmp, ptr %local_1, align 8
+  %retval = load ptr, ptr %local_1, align 8
+  ret ptr %retval
+}
+
 define i1 @"0000000000000100_M3_eq_address_RDPBXNLr9nyQX8"([32 x i8] %0, [32 x i8] %1) {
 entry:
   %local_0 = alloca [32 x i8], align 1
@@ -21,15 +56,6 @@ entry:
   store i1 %eq_dst, ptr %local_4, align 1
   %retval = load i1, ptr %local_4, align 1
   ret i1 %retval
-}
-
-define [32 x i8] @"0000000000000100_M3_fixed_address_AXsxXXZpHkUKQ3"() {
-entry:
-  %local_0 = alloca [32 x i8], align 1
-  %0 = load [32 x i8], ptr @acct.addr, align 1
-  store [32 x i8] %0, ptr %local_0, align 1
-  %retval = load [32 x i8], ptr %local_0, align 1
-  ret [32 x i8] %retval
 }
 
 define i1 @"0000000000000100_M3_ne_address_7hMDYRZvi8hjUg"([32 x i8] %0, [32 x i8] %1) {
@@ -48,36 +74,10 @@ entry:
   ret i1 %retval
 }
 
-define ptr @"0000000000000100_M3_ret_address_ref_mH7xfp9W2TDBYv"(ptr nonnull readonly %0) {
-entry:
-  %local_0 = alloca ptr, align 8
-  %local_1 = alloca ptr, align 8
-  store ptr %0, ptr %local_0, align 8
-  %load_store_tmp = load ptr, ptr %local_0, align 8
-  store ptr %load_store_tmp, ptr %local_1, align 8
-  %retval = load ptr, ptr %local_1, align 8
-  ret ptr %retval
-}
-
-define [32 x i8] @"0000000000000100_M3_use_address_ref_9jcTfHHsGoQPVk"(ptr nonnull readonly %0) {
-entry:
-  %local_0 = alloca ptr, align 8
-  %local_1 = alloca ptr, align 8
-  %local_2 = alloca [32 x i8], align 1
-  store ptr %0, ptr %local_0, align 8
-  %load_store_tmp = load ptr, ptr %local_0, align 8
-  store ptr %load_store_tmp, ptr %local_1, align 8
-  %load_deref_store_tmp1 = load ptr, ptr %local_1, align 8
-  %load_deref_store_tmp2 = load [32 x i8], ptr %load_deref_store_tmp1, align 1
-  store [32 x i8] %load_deref_store_tmp2, ptr %local_2, align 1
-  %retval = load [32 x i8], ptr %local_2, align 1
-  ret [32 x i8] %retval
-}
-
-define [32 x i8] @"0000000000000100_M3_use_address_val_EytLbxU1j6cfLn"([32 x i8] %0) {
+define [32 x i8] @"0000000000000100_M3_fixed_address_AXsxXXZpHkUKQ3"() {
 entry:
   %local_0 = alloca [32 x i8], align 1
-  %local_1 = alloca [32 x i8], align 1
+  %0 = load [32 x i8], ptr @acct.addr, align 1
   store [32 x i8] %0, ptr %local_0, align 1
   %retval = load [32 x i8], ptr %local_0, align 1
   ret [32 x i8] %retval

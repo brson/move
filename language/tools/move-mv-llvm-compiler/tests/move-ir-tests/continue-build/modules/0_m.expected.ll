@@ -5,6 +5,26 @@ target triple = "sbf-solana-solana"
 
 declare i32 @memcmp(ptr, ptr, i64)
 
+define void @"0000000000000042_m_bar_4HsAdEmqY5xWAy"() {
+entry:
+  %local_0 = alloca i64, align 8
+  store i64 0, ptr %local_0, align 8
+  %call_arg_0 = load i64, ptr %local_0, align 8
+  call void @move_rt_abort(i64 %call_arg_0)
+  unreachable
+}
+
+define void @"0000000000000042_m_foo_372CFZN6eJ9KQL"(ptr nonnull readonly %0) {
+entry:
+  %local_0 = alloca ptr, align 8
+  %local_1 = alloca i64, align 8
+  store ptr %0, ptr %local_0, align 8
+  store i64 0, ptr %local_1, align 8
+  %call_arg_0 = load i64, ptr %local_1, align 8
+  call void @move_rt_abort(i64 %call_arg_0)
+  unreachable
+}
+
 define void @"0000000000000042_m_a_57P3fP7Rqn6AaT"() {
 entry:
   %local_0 = alloca i64, align 8
@@ -142,26 +162,6 @@ bb_0:                                             ; preds = %bb_6
   %call_arg_0 = load ptr, ptr %local_21, align 8
   call void @"0000000000000042_m_foo_372CFZN6eJ9KQL"(ptr %call_arg_0)
   ret void
-}
-
-define void @"0000000000000042_m_bar_4HsAdEmqY5xWAy"() {
-entry:
-  %local_0 = alloca i64, align 8
-  store i64 0, ptr %local_0, align 8
-  %call_arg_0 = load i64, ptr %local_0, align 8
-  call void @move_rt_abort(i64 %call_arg_0)
-  unreachable
-}
-
-define void @"0000000000000042_m_foo_372CFZN6eJ9KQL"(ptr nonnull readonly %0) {
-entry:
-  %local_0 = alloca ptr, align 8
-  %local_1 = alloca i64, align 8
-  store ptr %0, ptr %local_0, align 8
-  store i64 0, ptr %local_1, align 8
-  %call_arg_0 = load i64, ptr %local_1, align 8
-  call void @move_rt_abort(i64 %call_arg_0)
-  unreachable
 }
 
 ; Function Attrs: cold noreturn

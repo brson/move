@@ -34,7 +34,7 @@ join_bb:                                          ; preds = %entry
   ret i64 %retval
 }
 
-define private i64 @"0000000000000100_Test_test_div_CsfLhW9PqfGaCK"(i64 %0, i64 %1) {
+define private i64 @"0000000000000100_Test_test_sub_GYyxTcZpGoiPQz"(i64 %0, i64 %1) {
 entry:
   %local_0 = alloca i64, align 8
   %local_1 = alloca i64, align 8
@@ -47,18 +47,18 @@ entry:
   store i64 %load_store_tmp, ptr %local_2, align 8
   %load_store_tmp1 = load i64, ptr %local_1, align 8
   store i64 %load_store_tmp1, ptr %local_3, align 8
-  %div_src_0 = load i64, ptr %local_2, align 8
-  %div_src_1 = load i64, ptr %local_3, align 8
-  %zerocond = icmp eq i64 %div_src_1, 0
-  br i1 %zerocond, label %then_bb, label %join_bb
+  %sub_src_0 = load i64, ptr %local_2, align 8
+  %sub_src_1 = load i64, ptr %local_3, align 8
+  %sub_dst = sub i64 %sub_src_0, %sub_src_1
+  %ovfcond = icmp ugt i64 %sub_dst, %sub_src_0
+  br i1 %ovfcond, label %then_bb, label %join_bb
 
 then_bb:                                          ; preds = %entry
   call void @move_rt_abort(i64 4017)
   unreachable
 
 join_bb:                                          ; preds = %entry
-  %div_dst = udiv i64 %div_src_0, %div_src_1
-  store i64 %div_dst, ptr %local_4, align 8
+  store i64 %sub_dst, ptr %local_4, align 8
   %retval = load i64, ptr %local_4, align 8
   ret i64 %retval
 }
@@ -93,7 +93,7 @@ join_bb:                                          ; preds = %entry
   ret i64 %retval
 }
 
-define private i64 @"0000000000000100_Test_test_sub_GYyxTcZpGoiPQz"(i64 %0, i64 %1) {
+define private i64 @"0000000000000100_Test_test_div_CsfLhW9PqfGaCK"(i64 %0, i64 %1) {
 entry:
   %local_0 = alloca i64, align 8
   %local_1 = alloca i64, align 8
@@ -106,18 +106,18 @@ entry:
   store i64 %load_store_tmp, ptr %local_2, align 8
   %load_store_tmp1 = load i64, ptr %local_1, align 8
   store i64 %load_store_tmp1, ptr %local_3, align 8
-  %sub_src_0 = load i64, ptr %local_2, align 8
-  %sub_src_1 = load i64, ptr %local_3, align 8
-  %sub_dst = sub i64 %sub_src_0, %sub_src_1
-  %ovfcond = icmp ugt i64 %sub_dst, %sub_src_0
-  br i1 %ovfcond, label %then_bb, label %join_bb
+  %div_src_0 = load i64, ptr %local_2, align 8
+  %div_src_1 = load i64, ptr %local_3, align 8
+  %zerocond = icmp eq i64 %div_src_1, 0
+  br i1 %zerocond, label %then_bb, label %join_bb
 
 then_bb:                                          ; preds = %entry
   call void @move_rt_abort(i64 4017)
   unreachable
 
 join_bb:                                          ; preds = %entry
-  store i64 %sub_dst, ptr %local_4, align 8
+  %div_dst = udiv i64 %div_src_0, %div_src_1
+  store i64 %div_dst, ptr %local_4, align 8
   %retval = load i64, ptr %local_4, align 8
   ret i64 %retval
 }

@@ -5,6 +5,29 @@ target triple = "sbf-solana-solana"
 
 declare i32 @memcmp(ptr, ptr, i64)
 
+define private i8 @"0000000000000100_Test_cast_u8_AvxxS7Jvff27Kr"(i32 %0) {
+entry:
+  %local_0 = alloca i32, align 4
+  %local_1 = alloca i32, align 4
+  %local_2 = alloca i8, align 1
+  store i32 %0, ptr %local_0, align 4
+  %load_store_tmp = load i32, ptr %local_0, align 4
+  store i32 %load_store_tmp, ptr %local_1, align 4
+  %cast_src = load i32, ptr %local_1, align 4
+  %castcond = icmp ugt i32 %cast_src, 255
+  br i1 %castcond, label %then_bb, label %join_bb
+
+then_bb:                                          ; preds = %entry
+  call void @move_rt_abort(i64 4017)
+  unreachable
+
+join_bb:                                          ; preds = %entry
+  %trunc_dst = trunc i32 %cast_src to i8
+  store i8 %trunc_dst, ptr %local_2, align 1
+  %retval = load i8, ptr %local_2, align 1
+  ret i8 %retval
+}
+
 define private i32 @"0000000000000100_Test_cast_u32_HTSGZTK3vZ9o3P"(i8 %0) {
 entry:
   %local_0 = alloca i8, align 1
@@ -33,29 +56,6 @@ entry:
   store i64 %zext_dst, ptr %local_2, align 8
   %retval = load i64, ptr %local_2, align 8
   ret i64 %retval
-}
-
-define private i8 @"0000000000000100_Test_cast_u8_AvxxS7Jvff27Kr"(i32 %0) {
-entry:
-  %local_0 = alloca i32, align 4
-  %local_1 = alloca i32, align 4
-  %local_2 = alloca i8, align 1
-  store i32 %0, ptr %local_0, align 4
-  %load_store_tmp = load i32, ptr %local_0, align 4
-  store i32 %load_store_tmp, ptr %local_1, align 4
-  %cast_src = load i32, ptr %local_1, align 4
-  %castcond = icmp ugt i32 %cast_src, 255
-  br i1 %castcond, label %then_bb, label %join_bb
-
-then_bb:                                          ; preds = %entry
-  call void @move_rt_abort(i64 4017)
-  unreachable
-
-join_bb:                                          ; preds = %entry
-  %trunc_dst = trunc i32 %cast_src to i8
-  store i8 %trunc_dst, ptr %local_2, align 1
-  %retval = load i8, ptr %local_2, align 1
-  ret i8 %retval
 }
 
 ; Function Attrs: cold noreturn

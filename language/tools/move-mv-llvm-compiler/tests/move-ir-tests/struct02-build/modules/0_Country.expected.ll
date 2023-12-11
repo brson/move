@@ -8,84 +8,6 @@ target triple = "sbf-solana-solana"
 
 declare i32 @memcmp(ptr, ptr, i64)
 
-define i8 @"0000000000000100_Country_dropit_4gerfDdmY6R4Gd"(%struct.Country__Country %0) {
-entry:
-  %local_0 = alloca %struct.Country__Country, align 8
-  %local_1 = alloca %struct.Country__Country, align 8
-  %local_2__id = alloca i8, align 1
-  %local_3__population = alloca i64, align 8
-  %local_4__phony = alloca %struct.Country__Dunno, align 8
-  store %struct.Country__Country %0, ptr %local_0, align 8
-  %srcval = load %struct.Country__Country, ptr %local_0, align 8
-  %ext_0 = extractvalue %struct.Country__Country %srcval, 0
-  %ext_1 = extractvalue %struct.Country__Country %srcval, 1
-  %ext_2 = extractvalue %struct.Country__Country %srcval, 2
-  store i8 %ext_0, ptr %local_2__id, align 1
-  store i64 %ext_1, ptr %local_3__population, align 8
-  store %struct.Country__Dunno %ext_2, ptr %local_4__phony, align 8
-  %retval = load i8, ptr %local_2__id, align 1
-  ret i8 %retval
-}
-
-define i8 @"0000000000000100_Country_get_id_8Ghws4vKQMPGTv"(ptr nonnull readonly %0) {
-entry:
-  %local_0 = alloca ptr, align 8
-  %local_1 = alloca ptr, align 8
-  %local_2__id = alloca ptr, align 8
-  %local_3 = alloca i8, align 1
-  store ptr %0, ptr %local_0, align 8
-  %load_store_tmp = load ptr, ptr %local_0, align 8
-  store ptr %load_store_tmp, ptr %local_1, align 8
-  %tmp = load ptr, ptr %local_1, align 8
-  %fld_ref = getelementptr inbounds %struct.Country__Country, ptr %tmp, i32 0, i32 0
-  store ptr %fld_ref, ptr %local_2__id, align 8
-  %load_deref_store_tmp1 = load ptr, ptr %local_2__id, align 8
-  %load_deref_store_tmp2 = load i8, ptr %load_deref_store_tmp1, align 1
-  store i8 %load_deref_store_tmp2, ptr %local_3, align 1
-  %retval = load i8, ptr %local_3, align 1
-  ret i8 %retval
-}
-
-define i64 @"0000000000000100_Country_get_phony_x_5NH9foguf4sbTM"(%struct.Country__Country %0) {
-entry:
-  %local_0 = alloca %struct.Country__Country, align 8
-  %local_1 = alloca ptr, align 8
-  %local_2__phony = alloca ptr, align 8
-  %local_3__x = alloca ptr, align 8
-  %local_4 = alloca i64, align 8
-  store %struct.Country__Country %0, ptr %local_0, align 8
-  store ptr %local_0, ptr %local_1, align 8
-  %tmp = load ptr, ptr %local_1, align 8
-  %fld_ref = getelementptr inbounds %struct.Country__Country, ptr %tmp, i32 0, i32 2
-  store ptr %fld_ref, ptr %local_2__phony, align 8
-  %tmp1 = load ptr, ptr %local_2__phony, align 8
-  %fld_ref2 = getelementptr inbounds %struct.Country__Dunno, ptr %tmp1, i32 0, i32 0
-  store ptr %fld_ref2, ptr %local_3__x, align 8
-  %load_deref_store_tmp1 = load ptr, ptr %local_3__x, align 8
-  %load_deref_store_tmp2 = load i64, ptr %load_deref_store_tmp1, align 8
-  store i64 %load_deref_store_tmp2, ptr %local_4, align 8
-  %retval = load i64, ptr %local_4, align 8
-  ret i64 %retval
-}
-
-define i64 @"0000000000000100_Country_get_pop_4Cs3XUWadjMT5e"(%struct.Country__Country %0) {
-entry:
-  %local_0 = alloca %struct.Country__Country, align 8
-  %local_1 = alloca ptr, align 8
-  %local_2__population = alloca ptr, align 8
-  %local_3 = alloca i64, align 8
-  store %struct.Country__Country %0, ptr %local_0, align 8
-  store ptr %local_0, ptr %local_1, align 8
-  %tmp = load ptr, ptr %local_1, align 8
-  %fld_ref = getelementptr inbounds %struct.Country__Country, ptr %tmp, i32 0, i32 1
-  store ptr %fld_ref, ptr %local_2__population, align 8
-  %load_deref_store_tmp1 = load ptr, ptr %local_2__population, align 8
-  %load_deref_store_tmp2 = load i64, ptr %load_deref_store_tmp1, align 8
-  store i64 %load_deref_store_tmp2, ptr %local_3, align 8
-  %retval = load i64, ptr %local_3, align 8
-  ret i64 %retval
-}
-
 define %struct.Country__Country @"0000000000000100_Country_new_country_52Qi8jwYTdUTGJ"(i8 %0, i64 %1) {
 entry:
   %local_0 = alloca i8, align 1
@@ -116,6 +38,65 @@ entry:
   ret %struct.Country__Country %retval
 }
 
+define i64 @"0000000000000100_Country_get_pop_4Cs3XUWadjMT5e"(%struct.Country__Country %0) {
+entry:
+  %local_0 = alloca %struct.Country__Country, align 8
+  %local_1 = alloca ptr, align 8
+  %local_2__population = alloca ptr, align 8
+  %local_3 = alloca i64, align 8
+  store %struct.Country__Country %0, ptr %local_0, align 8
+  store ptr %local_0, ptr %local_1, align 8
+  %tmp = load ptr, ptr %local_1, align 8
+  %fld_ref = getelementptr inbounds %struct.Country__Country, ptr %tmp, i32 0, i32 1
+  store ptr %fld_ref, ptr %local_2__population, align 8
+  %load_deref_store_tmp1 = load ptr, ptr %local_2__population, align 8
+  %load_deref_store_tmp2 = load i64, ptr %load_deref_store_tmp1, align 8
+  store i64 %load_deref_store_tmp2, ptr %local_3, align 8
+  %retval = load i64, ptr %local_3, align 8
+  ret i64 %retval
+}
+
+define i64 @"0000000000000100_Country_get_phony_x_5NH9foguf4sbTM"(%struct.Country__Country %0) {
+entry:
+  %local_0 = alloca %struct.Country__Country, align 8
+  %local_1 = alloca ptr, align 8
+  %local_2__phony = alloca ptr, align 8
+  %local_3__x = alloca ptr, align 8
+  %local_4 = alloca i64, align 8
+  store %struct.Country__Country %0, ptr %local_0, align 8
+  store ptr %local_0, ptr %local_1, align 8
+  %tmp = load ptr, ptr %local_1, align 8
+  %fld_ref = getelementptr inbounds %struct.Country__Country, ptr %tmp, i32 0, i32 2
+  store ptr %fld_ref, ptr %local_2__phony, align 8
+  %tmp1 = load ptr, ptr %local_2__phony, align 8
+  %fld_ref2 = getelementptr inbounds %struct.Country__Dunno, ptr %tmp1, i32 0, i32 0
+  store ptr %fld_ref2, ptr %local_3__x, align 8
+  %load_deref_store_tmp1 = load ptr, ptr %local_3__x, align 8
+  %load_deref_store_tmp2 = load i64, ptr %load_deref_store_tmp1, align 8
+  store i64 %load_deref_store_tmp2, ptr %local_4, align 8
+  %retval = load i64, ptr %local_4, align 8
+  ret i64 %retval
+}
+
+define i8 @"0000000000000100_Country_get_id_8Ghws4vKQMPGTv"(ptr nonnull readonly %0) {
+entry:
+  %local_0 = alloca ptr, align 8
+  %local_1 = alloca ptr, align 8
+  %local_2__id = alloca ptr, align 8
+  %local_3 = alloca i8, align 1
+  store ptr %0, ptr %local_0, align 8
+  %load_store_tmp = load ptr, ptr %local_0, align 8
+  store ptr %load_store_tmp, ptr %local_1, align 8
+  %tmp = load ptr, ptr %local_1, align 8
+  %fld_ref = getelementptr inbounds %struct.Country__Country, ptr %tmp, i32 0, i32 0
+  store ptr %fld_ref, ptr %local_2__id, align 8
+  %load_deref_store_tmp1 = load ptr, ptr %local_2__id, align 8
+  %load_deref_store_tmp2 = load i8, ptr %load_deref_store_tmp1, align 1
+  store i8 %load_deref_store_tmp2, ptr %local_3, align 1
+  %retval = load i8, ptr %local_3, align 1
+  ret i8 %retval
+}
+
 define void @"0000000000000100_Country_set_id_8yeuwVpdrxBWtK"(ptr noalias nonnull %0, i8 %1) {
 entry:
   %local_0 = alloca ptr, align 8
@@ -136,4 +117,23 @@ entry:
   %load_store_ref_dst_ptr = load ptr, ptr %local_4__id, align 8
   store i8 %load_store_ref_src, ptr %load_store_ref_dst_ptr, align 1
   ret void
+}
+
+define i8 @"0000000000000100_Country_dropit_4gerfDdmY6R4Gd"(%struct.Country__Country %0) {
+entry:
+  %local_0 = alloca %struct.Country__Country, align 8
+  %local_1 = alloca %struct.Country__Country, align 8
+  %local_2__id = alloca i8, align 1
+  %local_3__population = alloca i64, align 8
+  %local_4__phony = alloca %struct.Country__Dunno, align 8
+  store %struct.Country__Country %0, ptr %local_0, align 8
+  %srcval = load %struct.Country__Country, ptr %local_0, align 8
+  %ext_0 = extractvalue %struct.Country__Country %srcval, 0
+  %ext_1 = extractvalue %struct.Country__Country %srcval, 1
+  %ext_2 = extractvalue %struct.Country__Country %srcval, 2
+  store i8 %ext_0, ptr %local_2__id, align 1
+  store i64 %ext_1, ptr %local_3__population, align 8
+  store %struct.Country__Dunno %ext_2, ptr %local_4__phony, align 8
+  %retval = load i8, ptr %local_2__id, align 1
+  ret i8 %retval
 }

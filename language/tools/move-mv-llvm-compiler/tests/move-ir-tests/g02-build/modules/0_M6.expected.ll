@@ -5,11 +5,11 @@ target triple = "sbf-solana-solana"
 
 %struct.M6__Foo_bool_ = type { i1 }
 %struct.M6__Bar_u8.u64_ = type { i8, i64 }
-%struct.M6__Baz_address.u32_ = type { [32 x i8], %struct.M6__Foo_u32_ }
-%struct.M6__Foo_u32_ = type { i32 }
-%struct.M6__Foo_u16_ = type { i16 }
 %struct.M6__Foo_u64_ = type { i64 }
 %struct.M6__Baz_u8.u64_ = type { i8, %struct.M6__Foo_u64_ }
+%struct.M6__Foo_u16_ = type { i16 }
+%struct.M6__Baz_address.u32_ = type { [32 x i8], %struct.M6__Foo_u32_ }
+%struct.M6__Foo_u32_ = type { i32 }
 
 declare i32 @memcmp(ptr, ptr, i64)
 
@@ -55,37 +55,6 @@ entry:
   ret { i8, i64 } %insert_12
 }
 
-define private i32 @"0000000000000100_M6_rcv_and_idx_FwErx2TZaeG1AK"(%struct.M6__Baz_address.u32_ %0) {
-entry:
-  %local_0 = alloca %struct.M6__Baz_address.u32_, align 8
-  %local_1 = alloca ptr, align 8
-  %local_2__y = alloca ptr, align 8
-  %local_3__x = alloca ptr, align 8
-  %local_4 = alloca i32, align 4
-  store %struct.M6__Baz_address.u32_ %0, ptr %local_0, align 4
-  store ptr %local_0, ptr %local_1, align 8
-  %tmp = load ptr, ptr %local_1, align 8
-  %fld_ref = getelementptr inbounds %struct.M6__Baz_address.u32_, ptr %tmp, i32 0, i32 1
-  store ptr %fld_ref, ptr %local_2__y, align 8
-  %tmp1 = load ptr, ptr %local_2__y, align 8
-  %fld_ref2 = getelementptr inbounds %struct.M6__Foo_u32_, ptr %tmp1, i32 0, i32 0
-  store ptr %fld_ref2, ptr %local_3__x, align 8
-  %load_deref_store_tmp1 = load ptr, ptr %local_3__x, align 8
-  %load_deref_store_tmp2 = load i32, ptr %load_deref_store_tmp1, align 4
-  store i32 %load_deref_store_tmp2, ptr %local_4, align 4
-  %retval = load i32, ptr %local_4, align 4
-  ret i32 %retval
-}
-
-define private %struct.M6__Foo_u16_ @"0000000000000100_M6_snd_rcv_A3p5ByHS3F11Y9"(%struct.M6__Foo_u16_ %0) {
-entry:
-  %local_0 = alloca %struct.M6__Foo_u16_, align 8
-  %local_1 = alloca %struct.M6__Foo_u16_, align 8
-  store %struct.M6__Foo_u16_ %0, ptr %local_0, align 2
-  %retval = load %struct.M6__Foo_u16_, ptr %local_0, align 2
-  ret %struct.M6__Foo_u16_ %retval
-}
-
 define private { i8, i64 } @"0000000000000100_M6_zoo_5hjWgvSKxHmhsy"() {
 entry:
   %local_0 = alloca %struct.M6__Foo_u64_, align 8
@@ -127,4 +96,35 @@ entry:
   %insert_03 = insertvalue { i8, i64 } undef, i8 %rv.0, 0
   %insert_14 = insertvalue { i8, i64 } %insert_03, i64 %rv.1, 1
   ret { i8, i64 } %insert_14
+}
+
+define private %struct.M6__Foo_u16_ @"0000000000000100_M6_snd_rcv_A3p5ByHS3F11Y9"(%struct.M6__Foo_u16_ %0) {
+entry:
+  %local_0 = alloca %struct.M6__Foo_u16_, align 8
+  %local_1 = alloca %struct.M6__Foo_u16_, align 8
+  store %struct.M6__Foo_u16_ %0, ptr %local_0, align 2
+  %retval = load %struct.M6__Foo_u16_, ptr %local_0, align 2
+  ret %struct.M6__Foo_u16_ %retval
+}
+
+define private i32 @"0000000000000100_M6_rcv_and_idx_FwErx2TZaeG1AK"(%struct.M6__Baz_address.u32_ %0) {
+entry:
+  %local_0 = alloca %struct.M6__Baz_address.u32_, align 8
+  %local_1 = alloca ptr, align 8
+  %local_2__y = alloca ptr, align 8
+  %local_3__x = alloca ptr, align 8
+  %local_4 = alloca i32, align 4
+  store %struct.M6__Baz_address.u32_ %0, ptr %local_0, align 4
+  store ptr %local_0, ptr %local_1, align 8
+  %tmp = load ptr, ptr %local_1, align 8
+  %fld_ref = getelementptr inbounds %struct.M6__Baz_address.u32_, ptr %tmp, i32 0, i32 1
+  store ptr %fld_ref, ptr %local_2__y, align 8
+  %tmp1 = load ptr, ptr %local_2__y, align 8
+  %fld_ref2 = getelementptr inbounds %struct.M6__Foo_u32_, ptr %tmp1, i32 0, i32 0
+  store ptr %fld_ref2, ptr %local_3__x, align 8
+  %load_deref_store_tmp1 = load ptr, ptr %local_3__x, align 8
+  %load_deref_store_tmp2 = load i32, ptr %load_deref_store_tmp1, align 4
+  store i32 %load_deref_store_tmp2, ptr %local_4, align 4
+  %retval = load i32, ptr %local_4, align 4
+  ret i32 %retval
 }

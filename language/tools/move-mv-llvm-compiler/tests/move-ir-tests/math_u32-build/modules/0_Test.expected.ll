@@ -34,7 +34,7 @@ join_bb:                                          ; preds = %entry
   ret i32 %retval
 }
 
-define private i32 @"0000000000000100_Test_test_div_CsfLhW9PqfGaCK"(i32 %0, i32 %1) {
+define private i32 @"0000000000000100_Test_test_sub_GYyxTcZpGoiPQz"(i32 %0, i32 %1) {
 entry:
   %local_0 = alloca i32, align 4
   %local_1 = alloca i32, align 4
@@ -47,18 +47,18 @@ entry:
   store i32 %load_store_tmp, ptr %local_2, align 4
   %load_store_tmp1 = load i32, ptr %local_1, align 4
   store i32 %load_store_tmp1, ptr %local_3, align 4
-  %div_src_0 = load i32, ptr %local_2, align 4
-  %div_src_1 = load i32, ptr %local_3, align 4
-  %zerocond = icmp eq i32 %div_src_1, 0
-  br i1 %zerocond, label %then_bb, label %join_bb
+  %sub_src_0 = load i32, ptr %local_2, align 4
+  %sub_src_1 = load i32, ptr %local_3, align 4
+  %sub_dst = sub i32 %sub_src_0, %sub_src_1
+  %ovfcond = icmp ugt i32 %sub_dst, %sub_src_0
+  br i1 %ovfcond, label %then_bb, label %join_bb
 
 then_bb:                                          ; preds = %entry
   call void @move_rt_abort(i64 4017)
   unreachable
 
 join_bb:                                          ; preds = %entry
-  %div_dst = udiv i32 %div_src_0, %div_src_1
-  store i32 %div_dst, ptr %local_4, align 4
+  store i32 %sub_dst, ptr %local_4, align 4
   %retval = load i32, ptr %local_4, align 4
   ret i32 %retval
 }
@@ -93,7 +93,7 @@ join_bb:                                          ; preds = %entry
   ret i32 %retval
 }
 
-define private i32 @"0000000000000100_Test_test_sub_GYyxTcZpGoiPQz"(i32 %0, i32 %1) {
+define private i32 @"0000000000000100_Test_test_div_CsfLhW9PqfGaCK"(i32 %0, i32 %1) {
 entry:
   %local_0 = alloca i32, align 4
   %local_1 = alloca i32, align 4
@@ -106,18 +106,18 @@ entry:
   store i32 %load_store_tmp, ptr %local_2, align 4
   %load_store_tmp1 = load i32, ptr %local_1, align 4
   store i32 %load_store_tmp1, ptr %local_3, align 4
-  %sub_src_0 = load i32, ptr %local_2, align 4
-  %sub_src_1 = load i32, ptr %local_3, align 4
-  %sub_dst = sub i32 %sub_src_0, %sub_src_1
-  %ovfcond = icmp ugt i32 %sub_dst, %sub_src_0
-  br i1 %ovfcond, label %then_bb, label %join_bb
+  %div_src_0 = load i32, ptr %local_2, align 4
+  %div_src_1 = load i32, ptr %local_3, align 4
+  %zerocond = icmp eq i32 %div_src_1, 0
+  br i1 %zerocond, label %then_bb, label %join_bb
 
 then_bb:                                          ; preds = %entry
   call void @move_rt_abort(i64 4017)
   unreachable
 
 join_bb:                                          ; preds = %entry
-  store i32 %sub_dst, ptr %local_4, align 4
+  %div_dst = udiv i32 %div_src_0, %div_src_1
+  store i32 %div_dst, ptr %local_4, align 4
   %retval = load i32, ptr %local_4, align 4
   ret i32 %retval
 }

@@ -34,6 +34,65 @@ join_bb:                                          ; preds = %entry
   ret i128 %retval
 }
 
+define private i128 @"0000000000000100_Test_test_sub_GYyxTcZpGoiPQz"(i128 %0, i128 %1) {
+entry:
+  %local_0 = alloca i128, align 8
+  %local_1 = alloca i128, align 8
+  %local_2 = alloca i128, align 8
+  %local_3 = alloca i128, align 8
+  %local_4 = alloca i128, align 8
+  store i128 %0, ptr %local_0, align 8
+  store i128 %1, ptr %local_1, align 8
+  %load_store_tmp = load i128, ptr %local_0, align 8
+  store i128 %load_store_tmp, ptr %local_2, align 8
+  %load_store_tmp1 = load i128, ptr %local_1, align 8
+  store i128 %load_store_tmp1, ptr %local_3, align 8
+  %sub_src_0 = load i128, ptr %local_2, align 8
+  %sub_src_1 = load i128, ptr %local_3, align 8
+  %sub_dst = sub i128 %sub_src_0, %sub_src_1
+  %ovfcond = icmp ugt i128 %sub_dst, %sub_src_0
+  br i1 %ovfcond, label %then_bb, label %join_bb
+
+then_bb:                                          ; preds = %entry
+  call void @move_rt_abort(i64 4017)
+  unreachable
+
+join_bb:                                          ; preds = %entry
+  store i128 %sub_dst, ptr %local_4, align 8
+  %retval = load i128, ptr %local_4, align 8
+  ret i128 %retval
+}
+
+define private i128 @"0000000000000100_Test_test_mul_BctFaeLnecF8Gw"(i128 %0, i128 %1) {
+entry:
+  %local_0 = alloca i128, align 8
+  %local_1 = alloca i128, align 8
+  %local_2 = alloca i128, align 8
+  %local_3 = alloca i128, align 8
+  %local_4 = alloca i128, align 8
+  store i128 %0, ptr %local_0, align 8
+  store i128 %1, ptr %local_1, align 8
+  %load_store_tmp = load i128, ptr %local_0, align 8
+  store i128 %load_store_tmp, ptr %local_2, align 8
+  %load_store_tmp1 = load i128, ptr %local_1, align 8
+  store i128 %load_store_tmp1, ptr %local_3, align 8
+  %mul_src_0 = load i128, ptr %local_2, align 8
+  %mul_src_1 = load i128, ptr %local_3, align 8
+  %mul_val = call { i128, i1 } @llvm.umul.with.overflow.i128(i128 %mul_src_0, i128 %mul_src_1)
+  %mul_dst = extractvalue { i128, i1 } %mul_val, 0
+  %mul_ovf = extractvalue { i128, i1 } %mul_val, 1
+  br i1 %mul_ovf, label %then_bb, label %join_bb
+
+then_bb:                                          ; preds = %entry
+  call void @move_rt_abort(i64 4017)
+  unreachable
+
+join_bb:                                          ; preds = %entry
+  store i128 %mul_dst, ptr %local_4, align 8
+  %retval = load i128, ptr %local_4, align 8
+  ret i128 %retval
+}
+
 define private i128 @"0000000000000100_Test_test_div_CsfLhW9PqfGaCK"(i128 %0, i128 %1) {
 entry:
   %local_0 = alloca i128, align 8
@@ -88,65 +147,6 @@ then_bb:                                          ; preds = %entry
 join_bb:                                          ; preds = %entry
   %mod_dst = urem i128 %mod_src_0, %mod_src_1
   store i128 %mod_dst, ptr %local_4, align 8
-  %retval = load i128, ptr %local_4, align 8
-  ret i128 %retval
-}
-
-define private i128 @"0000000000000100_Test_test_mul_BctFaeLnecF8Gw"(i128 %0, i128 %1) {
-entry:
-  %local_0 = alloca i128, align 8
-  %local_1 = alloca i128, align 8
-  %local_2 = alloca i128, align 8
-  %local_3 = alloca i128, align 8
-  %local_4 = alloca i128, align 8
-  store i128 %0, ptr %local_0, align 8
-  store i128 %1, ptr %local_1, align 8
-  %load_store_tmp = load i128, ptr %local_0, align 8
-  store i128 %load_store_tmp, ptr %local_2, align 8
-  %load_store_tmp1 = load i128, ptr %local_1, align 8
-  store i128 %load_store_tmp1, ptr %local_3, align 8
-  %mul_src_0 = load i128, ptr %local_2, align 8
-  %mul_src_1 = load i128, ptr %local_3, align 8
-  %mul_val = call { i128, i1 } @llvm.umul.with.overflow.i128(i128 %mul_src_0, i128 %mul_src_1)
-  %mul_dst = extractvalue { i128, i1 } %mul_val, 0
-  %mul_ovf = extractvalue { i128, i1 } %mul_val, 1
-  br i1 %mul_ovf, label %then_bb, label %join_bb
-
-then_bb:                                          ; preds = %entry
-  call void @move_rt_abort(i64 4017)
-  unreachable
-
-join_bb:                                          ; preds = %entry
-  store i128 %mul_dst, ptr %local_4, align 8
-  %retval = load i128, ptr %local_4, align 8
-  ret i128 %retval
-}
-
-define private i128 @"0000000000000100_Test_test_sub_GYyxTcZpGoiPQz"(i128 %0, i128 %1) {
-entry:
-  %local_0 = alloca i128, align 8
-  %local_1 = alloca i128, align 8
-  %local_2 = alloca i128, align 8
-  %local_3 = alloca i128, align 8
-  %local_4 = alloca i128, align 8
-  store i128 %0, ptr %local_0, align 8
-  store i128 %1, ptr %local_1, align 8
-  %load_store_tmp = load i128, ptr %local_0, align 8
-  store i128 %load_store_tmp, ptr %local_2, align 8
-  %load_store_tmp1 = load i128, ptr %local_1, align 8
-  store i128 %load_store_tmp1, ptr %local_3, align 8
-  %sub_src_0 = load i128, ptr %local_2, align 8
-  %sub_src_1 = load i128, ptr %local_3, align 8
-  %sub_dst = sub i128 %sub_src_0, %sub_src_1
-  %ovfcond = icmp ugt i128 %sub_dst, %sub_src_0
-  br i1 %ovfcond, label %then_bb, label %join_bb
-
-then_bb:                                          ; preds = %entry
-  call void @move_rt_abort(i64 4017)
-  unreachable
-
-join_bb:                                          ; preds = %entry
-  store i128 %sub_dst, ptr %local_4, align 8
   %retval = load i128, ptr %local_4, align 8
   ret i128 %retval
 }
