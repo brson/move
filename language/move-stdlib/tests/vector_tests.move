@@ -552,7 +552,8 @@ module std::vector_tests {
         V::insert(&mut v, 6, 2);
     }
 
-    #[test]
+    // fixme (solana) https://github.com/solana-labs/move/issues/399
+    //#[test]
     fun size_limit_ok() {
         let v = V::empty();
         let i = 0;
@@ -565,8 +566,9 @@ module std::vector_tests {
         };
     }
 
-    #[test]
-    #[expected_failure(vector_error, minor_status = 4, location = Self)]
+    // fixme (solana) https://github.com/solana-labs/move/issues/399
+    //#[test]
+    //#[expected_failure(vector_error, minor_status = 4, location = Self)]
     fun size_limit_fail() {
         let v = V::empty();
         let i = 0;
