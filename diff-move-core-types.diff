@@ -1,0 +1,93 @@
+diff --git a/language/move-core/types/Cargo.toml b/language/move-core/types/Cargo.toml
+index 3faeb6aa3..48d757525 100644
+--- a/language/move-core/types/Cargo.toml
++++ b/language/move-core/types/Cargo.toml
+@@ -37,5 +37,5 @@ arbitrary = { version = "1.1.7", features = [ "derive_arbitrary"] }
+ [features]
+ address20 = []
+ address32 = []
+-default = []
++default = ["address32"]
+ fuzzing = ["proptest", "proptest-derive", "arbitrary"]
+diff --git a/language/move-core/types/src/account_address.rs b/language/move-core/types/src/account_address.rs
+index b013d8515..d49dc4d2e 100644
+--- a/language/move-core/types/src/account_address.rs
++++ b/language/move-core/types/src/account_address.rs
+@@ -145,13 +145,13 @@ impl std::ops::Deref for AccountAddress {
+ 
+ impl fmt::Display for AccountAddress {
+     fn fmt(&self, f: &mut fmt::Formatter) -> std::fmt::Result {
+-        write!(f, "{:x}", self)
++        write!(f, "0x{:x}", self)
+     }
+ }
+ 
+ impl fmt::Debug for AccountAddress {
+     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+-        write!(f, "{:x}", self)
++        write!(f, "0x{:x}", self)
+     }
+ }
+ 
+@@ -360,7 +360,7 @@ mod tests {
+ 
+         assert_eq!(
+             bytes.len(),
+-            AccountAddress::LENGTH as usize,
++            AccountAddress::LENGTH,
+             "Address {:?} is not {}-bytes long. Addresses must be {} bytes",
+             bytes,
+             AccountAddress::LENGTH,
+diff --git a/language/move-core/types/src/gas_algebra.rs b/language/move-core/types/src/gas_algebra.rs
+index c50a9489c..71d37a9fa 100644
+--- a/language/move-core/types/src/gas_algebra.rs
++++ b/language/move-core/types/src/gas_algebra.rs
+@@ -134,7 +134,7 @@ impl<U> From<GasQuantity<U>> for u64 {
+  **************************************************************************************************/
+ impl<U> Clone for GasQuantity<U> {
+     fn clone(&self) -> Self {
+-        Self::new(self.val)
++        *self
+     }
+ }
+ 
+@@ -261,7 +261,7 @@ fn apply_ratio_round_up(val: u64, nominator: u64, denominator: u64) -> u64 {
+     let n = val as u128 * nominator as u128;
+     let d = denominator as u128;
+ 
+-    let res = n / d + if n % d == 0 { 0 } else { 1 };
++    let res = n / d + u128::from(n % d != 0);
+     if res > u64::MAX as u128 {
+         u64::MAX
+     } else {
+diff --git a/language/move-core/types/src/unit_tests/identifier_test.rs b/language/move-core/types/src/unit_tests/identifier_test.rs
+index d59252c79..b8569be8e 100644
+--- a/language/move-core/types/src/unit_tests/identifier_test.rs
++++ b/language/move-core/types/src/unit_tests/identifier_test.rs
+@@ -69,12 +69,12 @@ proptest! {
+         // This effectively checks that if a string doesn't match the ALLOWED_IDENTIFIERS regex, it
+         // will be rejected by the is_valid validator. Note that the converse is checked by the
+         // Arbitrary impl for Identifier.
+-        prop_assert!(!Identifier::is_valid(&identifier));
++        prop_assert!(!Identifier::is_valid(identifier));
+     }
+ 
+     #[test]
+     fn valid_identifiers_proptest(identifier in ALLOWED_NO_SELF_IDENTIFIERS) {
+-        prop_assert!(Identifier::is_valid(&identifier));
++        prop_assert!(Identifier::is_valid(identifier));
+     }
+ 
+     #[test]
+diff --git a/language/move-core/types/src/vm_status.rs b/language/move-core/types/src/vm_status.rs
+index dd1788578..67f0f2f57 100644
+--- a/language/move-core/types/src/vm_status.rs
++++ b/language/move-core/types/src/vm_status.rs
+@@ -3,6 +3,7 @@
+ // SPDX-License-Identifier: Apache-2.0
+ 
+ #![allow(clippy::unit_arg)]
++#![allow(clippy::arc_with_non_send_sync)]
+ 
+ use crate::language_storage::ModuleId;
+ use anyhow::Result;
